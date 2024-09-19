@@ -124,8 +124,12 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export PATH=$PATH:/usr/local/go/bin:/home/dylan/go/bin
 
 # fnm aliased as nvm
-export PATH="/home/dylan/.local/share/fnm:$PATH"
-eval "`fnm env`"
+FNM_PATH="/home/dylan/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="/home/dylan/.local/share/fnm:$PATH"
+  eval "`fnm env`"
+fi
+
 alias nvm="fnm"
 
 # Enable startup debug time
@@ -166,3 +170,4 @@ export PATH="$PATH:/opt/nvim/"
 export PATH="$PATH:/opt/nvim-linux64/bin"
 
 source ~/.pyenvrc
+

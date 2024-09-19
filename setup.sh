@@ -1,20 +1,29 @@
 #!/bin/bash
 
+cd ~
+
 # Install Tools
 sudo apt install gh tmux zsh stow ninja-build gettext cmake unzip curl build-essential
+
+# Default zsh sell
+chsh -s $(which zsh)
+
+# Configure Github
+gh auth login
+
+# Node Version
+curl -fsSL https://fnm.vercel.app/install | bash
+fnm install 18
+fnm use 18
+
+# Dotfiles
+git clone https://github.com/dyl10s/dotfiles
+cd dotfiles
 
 stow custom-scripts
 stow nvim
 stow tmux
 stow zsh
-
-# Default zsh sell
-chsh -s $(which zsh)
-
-gh auth login
-
-# Dotfiles
-git clone https://github.com/dyl10s/dotfiles
 
 # Neovim
 mkdir ~/repos
