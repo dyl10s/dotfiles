@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+cd $HOME
+
+# Initialize array to store directories
+directories=()
+
+# Add additional directories from text file
+if [[ -f ~/custom-scripts/tmux-sessionizer-directories.txt ]]; then
+    while IFS= read -r dir; do
+        directories+=("$dir")
+    done < ~/custom-scripts/tmux-sessionizer-directories.txt
+fi
+
+# Add directories found by find command, avoiding duplicates
+while IFS= read -r dir; do
+    if [[ ! " ${directories[@]} " =~ " $dir " ]]; then
+        directories+=("$dir")
+    fi
+done < <(find ~/ ~/repos -mindepth 1 -maxdepth 1 -type d)
+
+# Use fzf to select a directory
+if [[ $# -eq 1 ]]; then
+    selected=$1
+else
+    selected=$(printf '%s\n' "${directories[@]}" | fzf)
+fi
+
+if [[ -z $selected ]]; then
+    exit 0
+fi
+
+selected_name=$(basename "$selected" | tr . _)
+tmux_running=$(pgrep tmux)
+
+if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+    tmux new-session -s $selected_name -c $selected
+    exit 0
+fi
+
+if ! tmux has-session -t=$selected_name 2> /dev/null; then
+    tmux new-session -ds $selected_name -c $selected
+fi
+
+tmux switch-client -t $selected_name

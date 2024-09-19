@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# Get the current working directory
+cwd=$(pwd)
+
+# Path to the file containing additional directories
+additional_directories_file="$HOME/custom-scripts/tmux-sessionizer-directories.txt"
+
+# Check if the cwd is already in the file
+if grep -Fxq "$cwd" "$additional_directories_file"; then
+    echo "Current working directory is already in the sessionizer"
+else
+    # Append the current working directory to the file
+    echo "$cwd" >> "$additional_directories_file"
+    echo "Current working directory added to the sessionizer"
+fi
