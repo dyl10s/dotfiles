@@ -9,16 +9,39 @@ sudo apt install gh tmux zsh stow ninja-build gettext cmake unzip curl build-ess
 chsh -s $(which zsh)
 
 # Configure Github
-gh auth login
+if ! gh auth status &>/dev/null; then
+    echo "You are not logged in. Please log in."
+    gh auth login
+else
+    echo "Skipping GitHub Login"
+fi
 
 # Node Version
-curl -fsSL https://fnm.vercel.app/install | bash
-fnm install 18
-fnm use 18
+if ! fnm --version &>/dev/null; then
+	curl -fsSL https://fnm.vercel.app/install | bash
+	fnm install 18
+	fnm use 18
+else
+    echo "Skipping fnm download"
+fi
+
+# Oh My ZSH
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # Dotfiles
-git clone https://github.com/dyl10s/dotfiles
-cd dotfiles
+if [ -d "$HOME/dotfiles" ]; then
+    echo "Skipping dotfile clone"
+	cd ~/dotfiles
+	git pull
+else
+	git clone https://github.com/dyl10s/dotfiles
+	cd dotfiles
+	git submodule update --init --recursive 
+fi
+
+# Git setup
+git config --global user.email "dylanstrohschein@gmail.com"
+git config --global user.name "Dylan Strohschein"
 
 stow custom-scripts
 stow nvim
@@ -26,13 +49,25 @@ stow tmux
 stow zsh
 
 # Neovim
-mkdir ~/repos
-cd ~/repos
-git clone https://github.com/neovim/neovim
-cd neovim
-git checkout stable
-make CMAKE_BUILD_TYPE=RelWithDebInfo
-sudo make install
+echo "Installing Neovim"
+if [ -d "$HOME/repos/neovim" ]; then
+    echo "Neovim already detected, updating..."
+	cd ~/repos/neovim
+	git checkout stable
+	make CMAKE_BUILD_TYPE=RelWithDebInfo &>/dev/null
+	sudo make install &>/dev/null
+else
+	mkdir ~/repos
+	cd ~/repos
+	git clone https://github.com/neovim/neovim
+	cd neovim
+	git checkout stable
+	make CMAKE_BUILD_TYPE=RelWithDebInfo &>/dev/null
+	sudo make install &>/dev/null
+fi
+echo "Neovim install complete"
+
 cd ~
+
 
 
