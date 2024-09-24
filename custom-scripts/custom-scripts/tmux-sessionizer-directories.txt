@@ -1,4 +1,3 @@
 /mnt/c
 ~/bin
 ~/.config/nvim
-~/repos/merch

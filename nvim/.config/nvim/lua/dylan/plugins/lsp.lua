@@ -71,7 +71,7 @@ return {
 						},
 					}
 				end,
-				["tsserver"] = function()
+				["ts_ls"] = function()
 					-- skip for now and use vtsls
 					if false then
 						lspconfig.tsserver.setup {
