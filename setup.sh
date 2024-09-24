@@ -3,7 +3,7 @@
 cd ~
 
 # Install Tools
-sudo apt install gh tmux zsh stow ninja-build gettext cmake unzip curl build-essential
+sudo apt install gh tmux zsh stow ninja-build gettext cmake unzip curl build-essential luarocks
 
 # Default zsh sell
 chsh -s $(which zsh)
@@ -66,6 +66,13 @@ else
 	sudo make install &>/dev/null
 fi
 echo "Neovim install complete"
+
+# Obsidian
+echo "Installing Obsidian"
+snap install obsidian --classic
+if [ ! -d "$HOME/Documents/Merch" ]; then
+	mkdir "$HOME/Documents/Merch"
+fi
 
 cd ~
 
