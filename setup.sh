@@ -11,7 +11,7 @@ echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/w
 sudo apt update
 
 # Install apt packages
-sudo apt install gh tmux zsh stow ninja-build gettext cmake unzip curl build-essential luarocks wezterm libmongoc-dev fzf
+sudo apt install gh tmux zsh stow ninja-build gettext cmake unzip curl build-essential luarocks wezterm libmongoc-dev fzf i3 polybar rofi
 
 # Default zsh sell
 chsh -s $(which zsh)
@@ -56,6 +56,7 @@ stow nvim
 stow tmux
 stow zsh
 stow wezterm
+stow i3
 
 # Neovim
 echo "Installing Neovim"
@@ -105,3 +106,9 @@ npm install -g cspell
 
 # Wezterm as default
 sudo update-alternatives --set x-terminal-emulator /usr/bin/open-wezterm-here
+
+# Chrome
+cd ~
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo dpkg -i google-chrome-stable_current_amd64.deb
+rm google-chrome-stable_current_amd64.deb
