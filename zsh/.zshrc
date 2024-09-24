@@ -149,7 +149,7 @@ export PATH="/usr/local/cuda-12.4/bin/nvcc:$PATH"
 alias gac="git add . && git commit"
 alias merch="npm run management:api"
 
-#Better npm install
+#Better npm install with bun :D
 npm() {
 	if [[ "$1" = "i" && "$#" -eq 1 ]]; then
 		command bun install &&\
@@ -169,5 +169,7 @@ alias email="aerc"
 export PATH="$PATH:/opt/nvim/"
 export PATH="$PATH:/opt/nvim-linux64/bin"
 
-source ~/.pyenvrc
+if [[ -f ~/.pyenvrc ]]; then
+	source ~/.pyenvrc
+fi
 
