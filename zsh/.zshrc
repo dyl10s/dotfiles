@@ -173,3 +173,8 @@ if [[ -f ~/.pyenvrc ]]; then
 	source ~/.pyenvrc
 fi
 
+# Set the browser to chrome for WSL
+if [[ $(grep -i Microsoft /proc/version) ]]; then
+	export BROWSER="/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
+	gh config set browser "/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
+fi

@@ -1,0 +1,60 @@
+prSections:
+  - title: Needs My Review
+    filters: is:open -label:"⚠️ Changes requested" -label:"🔒 Merge Conflicts" -label:"✅ Approved" -label:"🙅 Blocked" -label:"🚧 WIP" -status:failure  user-review-requested:@me draft:false 
+    type: null
+  - title: My Pull Requests (Changes Requested)
+    filters: is:open author:@me review:changes-requested
+    type: null
+  - title: My Pull Requests
+    filters: is:open author:@me
+    type: null
+defaults:
+  preview:
+    open: false
+    width: 50
+  prsLimit: 20
+  issuesLimit: 20
+  view: prs
+  layout:
+    prs:
+      updatedAt:
+        width: 5
+      repo:
+        width: 20
+        hidden: true
+      author:
+        width: 15
+      assignees:
+        width: 20
+        hidden: true
+      base:
+        width: 15
+        hidden: true
+      lines:
+        width: 15
+        hidden: true
+    issues:
+      updatedAt:
+        width: 5
+      repo:
+        width: 15
+      creator:
+        width: 10
+      assignees:
+        width: 20
+        hidden: true
+  refetchIntervalMinutes: 30
+keybindings:
+  universal: []
+  issues: []
+  prs: []
+repoPaths: {}
+theme:
+  ui:
+    sectionsShowCount: true
+    table:
+      showSeparator: true
+      compact: true
+pager:
+  diff: ""
+confirmQuit: false
