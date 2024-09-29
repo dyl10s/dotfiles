@@ -34,7 +34,7 @@ function AddToCSpellWordlist(opts, shouldLint)
 
 	if shouldLint then
 		local lint = require("lint")
-		lint.try_lint()
+		lint.try_lint("cspell")
 	end
 end
 
@@ -48,7 +48,7 @@ function AddAllCSpellWarningsToList()
 	end
 
 	local lint = require("lint")
-	lint.try_lint()
+	lint.try_lint("cspell")
 end
 
 return {
