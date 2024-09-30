@@ -92,16 +92,15 @@ return {
 					end
 				end,
 				["angularls"] = function()
-					lspconfig.angularls.setup {
-						capabilities = capabilities,
+					lspconfig.angularls.setup { capabilities = capabilities,
 						single_file_support = false,
-						root_dir = util.root_pattern(".git"),
+						root_dir = util.root_pattern("nx.json", "angular.json"),
 						filetypes = { 'typescript', 'html', 'typescriptreact', 'typescript.tsx', 'htmlangular' }
 					}
 				end,
 				["vtsls"] = function()
 					lspconfig.vtsls.setup {
-						root_dir = util.root_pattern(".git"),
+						root_dir = util.root_pattern("nx.json", "package.json", ".git"),
 						settings = {
 							complete_function_calls = true,
 							experimental = {

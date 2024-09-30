@@ -11,7 +11,7 @@ echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/w
 sudo apt update
 
 # Install apt packages
-sudo apt install gh tmux zsh stow ninja-build gettext cmake unzip curl build-essential luarocks wezterm libmongoc-dev fzf i3 polybar rofi
+sudo apt install gh tmux zsh stow ninja-build gettext cmake unzip curl build-essential luarocks wezterm libmongoc-dev fzf i3 polybar rofi lazygit
 
 # Default zsh sell
 chsh -s $(which zsh)
@@ -57,6 +57,7 @@ stow tmux
 stow zsh
 stow wezterm
 stow i3
+stow gh-dash
 
 # Neovim
 echo "Installing Neovim"
@@ -116,3 +117,7 @@ cd ~
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo dpkg -i google-chrome-stable_current_amd64.deb
 rm google-chrome-stable_current_amd64.deb
+
+# Git Tools
+gh extension install dlvhdr/gh-dash
+
