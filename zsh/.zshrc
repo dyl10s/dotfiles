@@ -173,3 +173,5 @@ if [[ -f ~/.pyenvrc ]]; then
 	source ~/.pyenvrc
 fi
 
+# Map caps to esc
+setxkbmap -option caps:escape

@@ -86,6 +86,10 @@ if [ ! -d "$HOME/Documents/Merch" ]; then
 fi
 cd ~
 
+# snap
+snap install slack
+snap install Studio3T
+
 # Font
 if [ ! -d "~/.local/share/fonts/CascadiaCode" ]; then
 	echo "Installing CascadiaCode Font"
