@@ -1,6 +1,19 @@
 # Enable startup debug time
 # zmodload zsh/zprof
 
+# Start SSH Agent
+if [ -z "$SSH_AUTH_SOCK" ]
+then
+   # Check for a currently running instance of the agent
+   RUNNING_AGENT="`ps -ax | grep 'ssh-agent -s' | grep -v grep | wc -l | tr -d '[:space:]'`"
+   if [ "$RUNNING_AGENT" = "0" ]
+   then
+        # Launch a new instance of the agent
+        ssh-agent -s &> .ssh/ssh-agent
+   fi
+   eval `cat .ssh/ssh-agent`
+fi
+
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$HOME/custom-scripts:/usr/local/bin:$PATH
 
@@ -178,3 +191,6 @@ if [[ $(grep -i Microsoft /proc/version) ]]; then
 	export BROWSER="/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
 	gh config set browser "/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
 fi
+
+# Kamal Deployment Tool
+alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "${SSH_AUTH_SOCK}:/ssh-agent" -v /var/run/docker.sock:/var/run/docker.sock -e "SSH_AUTH_SOCK=/ssh-agent" ghcr.io/basecamp/kamal:latest'

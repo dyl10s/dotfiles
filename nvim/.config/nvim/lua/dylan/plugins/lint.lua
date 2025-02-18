@@ -70,6 +70,7 @@ return {
 				javascriptreact = { "eslint_d", "cspell" },
 				typescriptreact = { "eslint_d", "cspell" },
 				html = { "cspell" },
+				go = { "cspell" },
 				css = { "cspell" },
 				scss = { "cspell" },
 				lua = { "cspell" }

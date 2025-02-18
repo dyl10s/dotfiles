@@ -13,7 +13,6 @@ return {
 		dependencies = {
 			"williamboman/mason-lspconfig.nvim",
 			"neovim/nvim-lspconfig",
-			'hrsh7th/cmp-nvim-lsp',
 			"nvim-lua/plenary.nvim",
 			"neovim/nvim-lspconfig",
 			"yioneko/nvim-vtsls"
@@ -24,7 +23,7 @@ return {
 			local telescope = require("telescope.builtin")
 
 			-- Set up lspconfig.
-			local capabilities = require('cmp_nvim_lsp').default_capabilities()
+			local capabilities = require('blink.cmp').get_lsp_capabilities()
 			local lspconfig = require("lspconfig")
 			local util = require("lspconfig.util")
 			local userLspAuGroup = vim.api.nvim_create_augroup('UserLspConfig', {})
@@ -33,6 +32,14 @@ return {
 				function(server_name) -- default handler (optional)
 					lspconfig[server_name].setup {
 						capabilities = capabilities,
+					}
+				end,
+				["html"] = function()
+					lspconfig.html.setup {
+						capabilities = capabilities,
+						init_options = {
+							provideFormatter = false
+						}
 					}
 				end,
 				["lua_ls"] = function()
@@ -92,10 +99,71 @@ return {
 					end
 				end,
 				["angularls"] = function()
-					lspconfig.angularls.setup { capabilities = capabilities,
+					local function get_probe_dir(root_dir)
+						local project_root = vim.fs.dirname(vim.fs.find('node_modules',
+							{ path = root_dir, upward = true })[1])
+
+						return project_root and (project_root .. '/node_modules') or ''
+					end
+
+					local function get_angular_core_version(root_dir)
+						local project_root = vim.fs.dirname(vim.fs.find('node_modules',
+							{ path = root_dir, upward = true })[1])
+
+						if not project_root then
+							return ''
+						end
+
+						local package_json = project_root .. '/package.json'
+						if not vim.loop.fs_stat(package_json) then
+							return ''
+						end
+
+						local contents = io.open(package_json):read '*a'
+						local json = vim.json.decode(contents)
+						if not json.dependencies then
+							return ''
+						end
+
+						local angular_core_version = json.dependencies['@angular/core']
+
+						return angular_core_version
+					end
+
+					local default_probe_dir = get_probe_dir(vim.fn.getcwd())
+					local default_angular_core_version = get_angular_core_version(vim.fn.getcwd())
+
+					lspconfig.angularls.setup {
+						capabilities = capabilities,
 						single_file_support = false,
 						root_dir = util.root_pattern("nx.json", "angular.json"),
-						filetypes = { 'typescript', 'html', 'typescriptreact', 'typescript.tsx', 'htmlangular' }
+						filetypes = { 'typescript', 'html', 'typescriptreact', 'typescript.tsx', 'htmlangular' },
+						cmd = {
+							'ngserver',
+							'--stdio',
+							'--tsProbeLocations',
+							default_probe_dir,
+							'--ngProbeLocations',
+							default_probe_dir,
+							'--angularCoreVersion',
+							default_angular_core_version,
+						},
+						on_new_config = function(new_config, new_root_dir)
+							local new_probe_dir = get_probe_dir(new_root_dir)
+							local angular_core_version = get_angular_core_version(new_root_dir)
+
+							-- We need to check our probe directories because they may have changed.
+							new_config.cmd = {
+								vim.fn.exepath('ngserver'),
+								'--stdio',
+								'--tsProbeLocations',
+								new_probe_dir,
+								'--ngProbeLocations',
+								new_probe_dir,
+								'--angularCoreVersion',
+								angular_core_version,
+							}
+						end,
 					}
 				end,
 				["vtsls"] = function()
@@ -165,11 +233,6 @@ return {
 					local function createBufferBind(mode, keymap, action, desc)
 						vim.keymap.set(mode, keymap, action, { buffer = ev.buf, desc = desc })
 					end
-
-					createBufferBind('n', 'ch', function()
-						-- Enable inlay hints
-						vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-					end, "Toggle [C]ode [H]ints");
 
 					-- Buffer local mappings.
 					-- See `:help vim.lsp.*` for documentation on any of the below functions

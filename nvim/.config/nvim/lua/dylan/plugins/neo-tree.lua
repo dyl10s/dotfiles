@@ -27,7 +27,34 @@ return {
 				}
 			},
 			window = {
-				position = "right"
+				position = "right",
+				mappings = {
+					["C"] = {
+						function(state)
+							local currentPath = state.tree:get_node().path
+							vim.ui.input({ prompt = 'Component Name:' }, function(answer)
+								if answer then
+									vim.cmd(':vsplit | terminal cd ' ..
+										currentPath .. ' && nx g @nx/angular:component ' ..
+										answer .. ' --skipTests --skipFormat')
+									vim.cmd(':startinsert')
+								end
+							end)
+						end
+					},
+					["X"] = {
+						function(state)
+							local currentPath = state.tree:get_node().path
+							vim.ui.input({ prompt = 'Command:' }, function(answer)
+								if answer then
+									vim.cmd(':vsplit | terminal cd ' ..
+										currentPath .. ' && ' .. answer)
+									vim.cmd(':startinsert')
+								end
+							end)
+						end
+					}
+				}
 			}
 		})
 	end
