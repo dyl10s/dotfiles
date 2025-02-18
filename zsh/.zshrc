@@ -186,6 +186,9 @@ if [[ -f ~/.pyenvrc ]]; then
 	source ~/.pyenvrc
 fi
 
+# Map caps to esc
+setxkbmap -option caps:escape
+
 # Set the browser to chrome for WSL
 if [[ $(grep -i Microsoft /proc/version) ]]; then
 	export BROWSER="/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
