@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Get the current branch name
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+
+# Extract the ticket number using grep (POSIX-compatible)
+TICKET_NUMBER=$(echo "$BRANCH_NAME" | grep -oE 'MERCH-[0-9]+')
+
+echo $1
+
+# If a ticket number was found, prepend it to the commit message
+if [ -n "$TICKET_NUMBER" ]; then
+    COMMIT_MSG=$(cat "$1")
+
+    # Check if the commit message already starts with the ticket number
+    case "$COMMIT_MSG" in
+        "$TICKET_NUMBER"*) ;;
+        *) echo "$TICKET_NUMBER $COMMIT_MSG" > "$1" ;;
+    esac
+fi

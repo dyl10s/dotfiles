@@ -53,6 +53,7 @@ git config --global user.name "Dylan Strohschein"
 
 stow custom-scripts
 stow nvim
+stow git-hooks
 stow tmux
 stow zsh
 stow wezterm
@@ -121,3 +122,5 @@ rm google-chrome-stable_current_amd64.deb
 # Git Tools
 gh extension install dlvhdr/gh-dash
 
+# Git Hooks
+git config --global core.hooksPath ~/.config/git-hooks

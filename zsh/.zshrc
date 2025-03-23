@@ -197,3 +197,6 @@ fi
 
 # Kamal Deployment Tool
 alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "${SSH_AUTH_SOCK}:/ssh-agent" -v /var/run/docker.sock:/var/run/docker.sock -e "SSH_AUTH_SOCK=/ssh-agent" ghcr.io/basecamp/kamal:latest'
+
+# TSGO
+export PATH="$PATH:/home/dylan/repos/typescript-go/built/local"

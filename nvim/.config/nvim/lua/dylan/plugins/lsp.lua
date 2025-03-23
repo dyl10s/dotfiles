@@ -79,9 +79,10 @@ return {
 					}
 				end,
 				["ts_ls"] = function()
-					-- skip for now and use vtsls
 					if false then
-						lspconfig.tsserver.setup {
+						lspconfig.ts_ls.setup {
+							cmd = { "tsgo", "lsp", "-stdio" },
+							root_dir = util.root_pattern("nx.json", "package.json", ".git"),
 							capabilities = capabilities,
 							lint_options = {
 								preferences = {
@@ -167,53 +168,59 @@ return {
 					}
 				end,
 				["vtsls"] = function()
-					lspconfig.vtsls.setup {
-						root_dir = util.root_pattern("nx.json", "package.json", ".git"),
-						settings = {
-							complete_function_calls = true,
-							experimental = {
-								completion = {
-									enableServerSideFuzzyMatch = true
-								}
-							},
-							typescript = {
-								tsserver = {
-									maxTsServerMemory = 8192
+					if true then
+						lspconfig.vtsls.setup {
+							root_dir = util.root_pattern("nx.json", "package.json", ".git"),
+							settings = {
+								complete_function_calls = true,
+								experimental = {
+									completion = {
+										enableServerSideFuzzyMatch = true
+									}
 								},
-								suggest = {
-									completeFunctionCalls = false
-								},
-								inlayHints = {
-									parameterNames = { enabled = "all" },
-									includeInlayParameterNameHintsWhenArgumentMatchesName = { enabled = false }
+								typescript = {
+									tsserver = {
+										maxTsServerMemory = 8192
+									},
+									preferences = {
+										importModuleSpecifier = "relative"
+									},
+									suggest = {
+										completeFunctionCalls = false
+									},
+									inlayHints = {
+										parameterNames = { enabled = "all" },
+										includeInlayParameterNameHintsWhenArgumentMatchesName = { enabled = false }
+									}
 								}
 							}
 						}
-					}
+
+						local lsp_augroup = vim.api.nvim_create_augroup("lsp", { clear = true })
+
+						local vtsls = require("vtsls");
+
+						vim.api.nvim_create_autocmd("BufWritePre", {
+							group = lsp_augroup,
+							pattern = "*.ts",
+							callback = function()
+								local isDone = false;
+
+								vtsls.commands["add_missing_imports"](0, function()
+									vtsls.commands["organize_imports"](0, function()
+										isDone = true;
+									end)
+								end)
+
+								vim.wait(5000, function()
+									return isDone;
+								end)
+							end,
+						})
+					end
 				end
 			}
 
-			local lsp_augroup = vim.api.nvim_create_augroup("lsp", { clear = true })
-
-			local vtsls = require("vtsls");
-
-			vim.api.nvim_create_autocmd("BufWritePre", {
-				group = lsp_augroup,
-				pattern = "*.ts",
-				callback = function()
-					local isDone = false;
-
-					vtsls.commands["add_missing_imports"](0, function()
-						vtsls.commands["organize_imports"](0, function()
-							isDone = true;
-						end)
-					end)
-
-					vim.wait(5000, function()
-						return isDone;
-					end)
-				end,
-			})
 
 			-- Global mappings.
 			-- See `:help vim.diagnostic.*` for documentation on any of the below functions
