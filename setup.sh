@@ -61,23 +61,7 @@ stow i3
 stow gh-dash
 
 # Neovim
-echo "Installing Neovim"
-if [ -d "$HOME/repos/neovim" ]; then
-    echo "Neovim already detected, updating..."
-	cd ~/repos/neovim
-	git checkout stable
-	make CMAKE_BUILD_TYPE=RelWithDebInfo &>/dev/null
-	sudo make install &>/dev/null
-else
-	mkdir ~/repos
-	cd ~/repos
-	git clone https://github.com/neovim/neovim
-	cd neovim
-	git checkout stable
-	make CMAKE_BUILD_TYPE=RelWithDebInfo &>/dev/null
-	sudo make install &>/dev/null
-fi
-echo "Neovim install complete"
+neovim-fetch
 cd ~
 
 # Obsidian

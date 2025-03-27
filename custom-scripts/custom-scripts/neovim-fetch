@@ -1,0 +1,23 @@
+#!/bin/bash
+
+echo "Installing Neovim"
+if [ -d "$HOME/repos/neovim" ]; then
+    echo "Neovim already detected, updating..."
+	cd ~/repos/neovim
+
+	git fetch --all --tags --force
+
+	git checkout stable
+
+	make CMAKE_BUILD_TYPE=RelWithDebInfo &>/dev/null
+	sudo make install &>/dev/null
+else
+	mkdir ~/repos
+	cd ~/repos
+	git clone https://github.com/neovim/neovim
+	cd neovim
+	git checkout stable
+	make CMAKE_BUILD_TYPE=RelWithDebInfo &>/dev/null
+	sudo make install &>/dev/null
+fi
+echo "Neovim install complete"

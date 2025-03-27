@@ -187,7 +187,12 @@ if [[ -f ~/.pyenvrc ]]; then
 fi
 
 # Map caps to esc
-setxkbmap -option caps:escape
+if [[ $XDG_SESSION_TYPE == "x11" ]]; then
+	setxkbmap -option caps:escape
+else
+	gsettings set org.gnome.desktop.input-sources xkb-options "['caps:escape']"
+fi
+
 
 # Set the browser to chrome for WSL
 if [[ $(grep -i Microsoft /proc/version) ]]; then
