@@ -1,7 +1,6 @@
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
-require 'dylan.file-type'
 require 'dylan.settings'
 require 'dylan.lazy'
 require 'dylan.fileSwapper'

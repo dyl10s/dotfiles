@@ -8,6 +8,18 @@ return {
 		config = function()
 			local configs = require("nvim-treesitter.configs")
 
+			vim.filetype.add({
+				extension = {
+					hbs = "html"
+				}
+			})
+
+			vim.filetype.add({
+				pattern = {
+					[".*%.component%.html"] = "htmlangular",
+				},
+			})
+
 			configs.setup({
 				ensure_installed = { "typescript", "lua", "javascript", "html", "angular" },
 				sync_install = false,

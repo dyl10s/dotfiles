@@ -166,17 +166,17 @@ alias merch="npm run management:api"
 npm() {
 	if [[ "$1" = "i" && "$#" -eq 1 ]]; then
 		command bun install &&\
-			bun pm trust --all &&\
 			rm bun.lockb &&\
 			contents="$(jq 'del(.trustedDependencies)' package.json)" &&\
 			echo -E "${contents}" > package.json &&\
-			npx prettier -w package.json
+			npx prettier -w package.json &&\
+			npm install
 	else
 		command npm "$@"
 	fi
 }
 
-alias buni="bun install && rm bun.lockb"
+alias buni="npm i"
 alias email="aerc"
 
 export PATH="$PATH:/opt/nvim/"
