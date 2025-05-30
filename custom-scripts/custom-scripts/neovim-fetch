@@ -10,7 +10,8 @@ if [ -d "$HOME/repos/neovim" ]; then
 	git checkout stable
 
 	make CMAKE_BUILD_TYPE=RelWithDebInfo &>/dev/null
-	sudo make install &>/dev/null
+	make distclean
+	sudo make install
 else
 	mkdir ~/repos
 	cd ~/repos
@@ -18,6 +19,6 @@ else
 	cd neovim
 	git checkout stable
 	make CMAKE_BUILD_TYPE=RelWithDebInfo &>/dev/null
-	sudo make install &>/dev/null
+	sudo make install
 fi
 echo "Neovim install complete"

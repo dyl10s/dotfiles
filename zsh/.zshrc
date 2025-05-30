@@ -1,19 +1,6 @@
 # Enable startup debug time
 # zmodload zsh/zprof
 
-# Start SSH Agent
-if [ -z "$SSH_AUTH_SOCK" ]
-then
-   # Check for a currently running instance of the agent
-   RUNNING_AGENT="`ps -ax | grep 'ssh-agent -s' | grep -v grep | wc -l | tr -d '[:space:]'`"
-   if [ "$RUNNING_AGENT" = "0" ]
-   then
-        # Launch a new instance of the agent
-        ssh-agent -s &> .ssh/ssh-agent
-   fi
-   eval `cat .ssh/ssh-agent`
-fi
-
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$HOME/custom-scripts:/usr/local/bin:$PATH
 
@@ -166,7 +153,7 @@ alias merch="npm run management:api"
 npm() {
 	if [[ "$1" = "i" && "$#" -eq 1 ]]; then
 		command bun install &&\
-			rm bun.lockb &&\
+			rm bun.lock &&\
 			contents="$(jq 'del(.trustedDependencies)' package.json)" &&\
 			echo -E "${contents}" > package.json &&\
 			npx prettier -w package.json &&\
@@ -189,7 +176,7 @@ fi
 # Map caps to esc
 if [[ $XDG_SESSION_TYPE == "x11" ]]; then
 	setxkbmap -option caps:escape
-else
+elif [[ -n "$DISPLAY" && -z "$TMUX" ]]; then
 	gsettings set org.gnome.desktop.input-sources xkb-options "['caps:escape']"
 fi
 

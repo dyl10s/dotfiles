@@ -28,6 +28,8 @@ return {
 			local util = require("lspconfig.util")
 			local userLspAuGroup = vim.api.nvim_create_augroup('UserLspConfig', {})
 
+			local enableTSGO = false;
+
 			require("mason-lspconfig").setup_handlers {
 				function(server_name) -- default handler (optional)
 					lspconfig[server_name].setup {
@@ -79,10 +81,9 @@ return {
 					}
 				end,
 				["ts_ls"] = function()
-					if false then
+					if enableTSGO then
 						lspconfig.ts_ls.setup {
 							cmd = { "tsgo", "lsp", "-stdio" },
-							root_dir = util.root_pattern("nx.json", "package.json", ".git"),
 							capabilities = capabilities,
 							lint_options = {
 								preferences = {
@@ -168,9 +169,8 @@ return {
 					}
 				end,
 				["vtsls"] = function()
-					if true then
+					if not enableTSGO then
 						lspconfig.vtsls.setup {
-							root_dir = util.root_pattern("nx.json", "package.json", ".git"),
 							settings = {
 								complete_function_calls = true,
 								experimental = {
@@ -183,7 +183,7 @@ return {
 										maxTsServerMemory = 8192
 									},
 									preferences = {
-										importModuleSpecifier = "relative"
+										importModuleSpecifier = "project-relative"
 									},
 									suggest = {
 										completeFunctionCalls = false
@@ -212,7 +212,7 @@ return {
 									end)
 								end)
 
-								vim.wait(5000, function()
+								vim.wait(500, function()
 									return isDone;
 								end)
 							end,
@@ -224,7 +224,14 @@ return {
 
 			-- Global mappings.
 			-- See `:help vim.diagnostic.*` for documentation on any of the below functions
-			vim.keymap.set('n', '<space>e', vim.diagnostic.open_float)
+			vim.diagnostic.config({
+				float = {
+					show_header = false,
+					border = 'rounded'
+				},
+			})
+
+			vim.keymap.set('n', '<space>x', vim.diagnostic.open_float)
 			vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
 			vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
 			vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist)

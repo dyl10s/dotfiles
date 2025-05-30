@@ -57,12 +57,14 @@ return {
 		config = function()
 			local lint = require("lint")
 
-			local cspell = lint.linters.cspell
-			if vim.fs.find({ ".git" }, { upwards = true })[1] then
-				cspell.args = {
-					'--root=' .. vim.fs.dirname(vim.fs.find({ ".git" }, { upwards = true })[1])
-				}
-			end
+			-- local cspell = lint.linters.cspell
+			-- local git_root = vim.fs.find({ ".git" }, { upwards = true })[1]
+			-- print(vim.fs.dirname(git_root))
+			-- if git_root then
+			-- 	cspell.args = {
+			-- 		'--config=' .. vim.fs.dirname(git_root) .. '/cspell.json'
+			-- 	}
+			-- end
 
 			lint.linters_by_ft = {
 				javascript = { "eslint_d", "cspell" },
