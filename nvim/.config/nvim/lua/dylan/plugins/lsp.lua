@@ -10,8 +10,12 @@ end
 return {
 	{
 		"williamboman/mason.nvim",
+		tag = "v1.11.0",
 		dependencies = {
-			"williamboman/mason-lspconfig.nvim",
+			{
+				"williamboman/mason-lspconfig.nvim",
+				tag = "v1.32.0"
+			},
 			"neovim/nvim-lspconfig",
 			"nvim-lua/plenary.nvim",
 			"neovim/nvim-lspconfig",
@@ -83,7 +87,7 @@ return {
 				["ts_ls"] = function()
 					if enableTSGO then
 						lspconfig.ts_ls.setup {
-							cmd = { "tsgo", "lsp", "-stdio" },
+							cmd = { "tsgo", "--lsp", "-stdio" },
 							capabilities = capabilities,
 							lint_options = {
 								preferences = {

@@ -1,5 +1,6 @@
 # Enable startup debug time
 # zmodload zsh/zprof
+source ~/secrets.sh
 
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$HOME/custom-scripts:/usr/local/bin:$PATH
@@ -192,3 +193,6 @@ alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "${SSH_AUTH_SOCK}:/ssh-
 
 # TSGO
 export PATH="$PATH:/home/dylan/repos/typescript-go/built/local"
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
