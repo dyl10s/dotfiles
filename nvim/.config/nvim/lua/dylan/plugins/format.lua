@@ -20,7 +20,6 @@ return {
 				h = { "clang-format", stop_after_first = true }
 			}
 
-			print(cwd)
 			if cwd:match("typescript%-go") then
 				formatters.typescript = { "dprint", stop_after_first = true }
 				formatters.typescriptreact = { "dprint", stop_after_first = true }

@@ -1,29 +1,29 @@
 return {
 	"yetone/avante.nvim",
 	event = "VeryLazy",
-	version = false, -- Never set this value to "*"! Never!
+	version = false,
 	opts = {
-		-- add any opts here
-		-- for example
-		provider = "gemini",
-		gemini = {
-			model = "gemini-2.5-flash-preview-05-20", -- your desired model (or use gpt-4o, etc.)
-		},
-		selector = {
-			provider = "fzf",
-			-- Options override for custom providers
-			provider_opts = {},
+		provider = 'gemini',
+		providers = {
+			gemini = {
+				model = "gemini-2.5-flash-preview-04-17",
+			}
 		}
 	},
-	-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
 	build = "make",
-	-- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
 		"stevearc/dressing.nvim",
 		"nvim-lua/plenary.nvim",
 		"MunifTanjim/nui.nvim",
-		"ibhagwan/fzf-lua",
+
+		"echasnovski/mini.pick",   -- for file_selector provider mini.pick
+		"nvim-telescope/telescope.nvim", -- for file_selector provider telescope
+		"ibhagwan/fzf-lua",        -- for file_selector provider fzf
+		"stevearc/dressing.nvim",  -- for input provider dressing
+		"folke/snacks.nvim",       -- for input provider snacks
+		"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
+		'Kaiser-Yang/blink-cmp-avante',
 		{
 			-- support for image pasting
 			"HakonHarnes/img-clip.nvim",

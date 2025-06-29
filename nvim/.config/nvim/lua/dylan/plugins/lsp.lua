@@ -200,12 +200,12 @@ return {
 							}
 						}
 
-						local lsp_augroup = vim.api.nvim_create_augroup("lsp", { clear = true })
+						local lsp_vtsls_augroup = vim.api.nvim_create_augroup("lsp-vtsls", { clear = true })
 
 						local vtsls = require("vtsls");
 
 						vim.api.nvim_create_autocmd("BufWritePre", {
-							group = lsp_augroup,
+							group = lsp_vtsls_augroup,
 							pattern = "*.ts",
 							callback = function()
 								local isDone = false;

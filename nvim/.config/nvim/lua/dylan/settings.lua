@@ -12,6 +12,7 @@ vim.o.clipboard = 'unnamedplus'
 vim.o.breakindent = true
 
 vim.o.undofile = true
+vim.o.autoindent = true
 
 vim.o.ignorecase = true
 vim.o.smartcase = true

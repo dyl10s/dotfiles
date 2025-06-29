@@ -1,7 +1,9 @@
 return {
 	{
 		'saghen/blink.cmp',
-		dependencies = {},
+		dependencies = {
+			'Kaiser-Yang/blink-cmp-avante'
+		},
 		version = '*',
 
 		opts = {
@@ -18,12 +20,10 @@ return {
 
 			completion = {
 				menu = {
-					-- nvim-cmp style menu
 					draw = {
 						treesitter = { 'lsp' },
 						columns = {
 							{ "kind_icon", "label", "label_description", gap = 1 },
-
 						},
 					}
 				},
@@ -32,7 +32,16 @@ return {
 			},
 
 			sources = {
-				default = { 'lsp', 'path', 'snippets', 'buffer' },
+				default = { 'avante', 'lsp', 'path', 'snippets', 'buffer' },
+				providers = {
+					avante = {
+						module = 'blink-cmp-avante',
+						name = 'Avante',
+						opts = {
+							-- options for blink-cmp-avante
+						}
+					}
+				},
 			},
 		},
 		opts_extend = { "sources.default" }

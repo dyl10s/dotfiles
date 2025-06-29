@@ -4,3 +4,4 @@
 # all functions work
 
 export GEMINI_API_KEY=""
+export TWITTER_CLIENT_ID=""
