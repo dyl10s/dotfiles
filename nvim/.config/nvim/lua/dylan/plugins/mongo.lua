@@ -1,4 +1,5 @@
 return {
+	enabled = false,
 	dir = '~/.config/nvim/lua/plugins/mongodb/',
 	build = "luarocks install lua-mongo",
 	event = "VeryLazy",

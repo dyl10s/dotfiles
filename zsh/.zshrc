@@ -183,9 +183,11 @@ fi
 
 
 # Set the browser to chrome for WSL
-if [[ $(grep -i Microsoft /proc/version) ]]; then
-	export BROWSER="/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
-	gh config set browser "/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
+if [ -d "/proc/version" ]; then
+	if [[ $(grep -i Microsoft /proc/version) ]]; then
+		export BROWSER="/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
+		gh config set browser "/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
+	fi
 fi
 
 # Kamal Deployment Tool
@@ -194,5 +196,12 @@ alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "${SSH_AUTH_SOCK}:/ssh-
 # TSGO
 export PATH="$PATH:/home/dylan/repos/typescript-go/built/local"
 
-# Generated for envman. Do not edit.
-[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/dylan/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/dylan/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/dylan/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/dylan/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+
+alias bp="cd ~/repos/bindplane-op-enterprise && go run ./cmd/bindplane/main.go"
+alias bindplane="cd ~/repos/bindplane-op-enterprise && go run ./cmd/bindplane/main.go"

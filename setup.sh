@@ -57,6 +57,7 @@ stow git-hooks
 stow tmux
 stow zsh
 stow wezterm
+stow ghostty
 stow i3
 stow gh-dash
 
