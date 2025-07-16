@@ -1,8 +1,8 @@
 return {
-	dir = "~/repos/tweet.nvim",
-	dev = true,
+	-- dir = "~/repos/tweet.nvim",
+	-- dev = true,
 	lazy = false,
-	-- 'dyl10s/tweet.nvim',
+	'dyl10s/tweet.nvim',
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 	},
@@ -12,6 +12,6 @@ return {
 		}
 	},
 	opts = {
-		auto_auth = true
+		auto_auth = false
 	},
 }

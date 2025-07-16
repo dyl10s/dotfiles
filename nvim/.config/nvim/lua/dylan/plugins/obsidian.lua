@@ -10,8 +10,8 @@ return {
 		obsidian.setup({
 			workspaces = {
 				{
-					name = "merch",
-					path = "/home/dylan/Documents/Merch",
+					name = "notes",
+					path = "~/Documents/Notes",
 				},
 			},
 			ui = {

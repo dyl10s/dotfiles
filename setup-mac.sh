@@ -10,7 +10,7 @@ fi
 brew update
 
 # Install CLI tools & apps
-brew install gh tmux zsh stow cmake unzip curl ninja gettext luarocks fzf lazygit node wget fnm
+brew install gh tmux zsh stow cmake unzip curl ninja gettext luarocks ripgrep fzf lazygit node wget fnm
 brew install --cask wezterm     # confirmed available :contentReference[oaicite:1]{index=1}
 brew install --cask obsidian
 brew install --cask slack
@@ -19,6 +19,17 @@ brew install --cask google-chrome
 
 # Set default shell
 chsh -s "$(which zsh)"
+
+# Stow configurations
+cd ~/dotfiles
+stow custom-scripts
+stow nvim
+stow git-hooks
+stow tmux
+stow zsh
+stow wezterm
+stow ghostty
+stow gh-dash
 
 # GH CLI login
 if ! gh auth status &>/dev/null; then
@@ -61,21 +72,12 @@ fi
 git config --global user.email "dylanstrohschein@gmail.com"
 git config --global user.name "Dylan Strohschein"
 
-# Stow configurations
-cd ~/dotfiles
-stow custom-scripts nvim git-hooks tmux zsh wezterm gh-dash
-
 # Neovim fetch (if defined)
-if command -v neovim-fetch &>/dev/null; then
-  neovim-fetch
-fi
-
-# Create Merch directory
-mkdir -p "$HOME/Documents/Merch"
+sudo neovim-fetch
 
 # Install Nerd Font (CascadiaCode)
 FONT_DIR="$HOME/Library/Fonts"
-if [ ! -f "$FONT_DIR/CascadiaCode Nerd Font.ttf" ]; then
+if [ ! -f "$FONT_DIR/CaskaydiaCoveNerdFont-Bold.ttf" ]; then
   echo "Installing CascadiaCode Nerd Font..."
   wget -P /tmp https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/CascadiaCode.zip
   unzip -o /tmp/CascadiaCode.zip -d "$FONT_DIR"
@@ -98,6 +100,7 @@ luarocks install lua-mongo || echo "lua-mongo install needs Xcode or mongo-c-dri
 
 # Global npm tools
 npm install -g cspell
+npm install -g eslint_d
 
 # GitHub CLI extension
 gh extension install dlvhdr/gh-dash
