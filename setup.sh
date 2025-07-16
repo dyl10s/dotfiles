@@ -86,6 +86,17 @@ if [ ! -d "~/.local/share/fonts/CascadiaCode" ]; then
 	fc-cache -fv
 	echo "Font install complete"
 fi
+
+if [ ! -d "~/.local/share/fonts/Agave" ]; then
+	echo "Installing CascadiaCode Font"
+	wget -P ~/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Agave.zip
+	cd ~/.local/share/fonts
+	unzip Agave.zip
+	rm Agave.zip
+	fc-cache -fv
+	echo "Font install complete"
+fi
+
 cd ~
 
 # Mongo NVIM Plugin

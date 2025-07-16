@@ -83,6 +83,16 @@ if [ ! -f "$FONT_DIR/CascadiaCode Nerd Font.ttf" ]; then
   echo "Font installed"
 fi
 
+# Install Nerd Font (Agave)
+FONT_DIR="$HOME/Library/Fonts"
+if [ ! -f "$FONT_DIR/AgaveNerFont-Regular.ttf" ]; then
+  echo "Installing Agave Nerd Font..."
+  wget -P /tmp https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Agave.zip
+  unzip -o /tmp/Agave.zip -d "$FONT_DIR"
+  rm /tmp/Agave.zip
+  echo "Font installed"
+fi
+
 # Lua Mongo driver (may require Xcode + Mongo C driver)
 luarocks install lua-mongo || echo "lua-mongo install needs Xcode or mongo-c-driver"
 
