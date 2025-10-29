@@ -2,22 +2,22 @@ function AddToCSpellWordlist(opts, shouldLint)
 	-- default to true
 	shouldLint = shouldLint == nil or shouldLint
 
-	local cspell_file = vim.fs.dirname(vim.fs.find({ "cspell.json" }, { upwards = true })[1]) .. "/cspell.json"
+	local cspell_file = vim.fn.expand('~/.cspell.json')
 
-	local existing_words = vim.fn.json_decode(vim.fn.readfile(cspell_file))
-
-	-- Check if cspell.json exists
+	-- Check if ~/.cspell.json exists
+	local existing_words
 	if vim.fn.filereadable(cspell_file) == 1 then
 		existing_words = vim.fn.json_decode(vim.fn.readfile(cspell_file))
 	else
-		-- Create cspell.json if it doesn't exist
+		-- Create ~/.cspell.json if it doesn't exist
 		local newFile = io.open(cspell_file, "w")
 		if newFile then
-			newFile:write('{ "words": [] }')
+			newFile:write('{ "language": "en", "dictionaries": ["en_US"], "words": [] }')
 			newFile:close()
-			print("Created cspell.json file.")
+			print("Created ~/.cspell.json.")
+			existing_words = { words = {} }
 		else
-			print("Error creating cspell.json file.")
+			print("Error creating ~/.cspell.json.")
 			return
 		end
 	end
@@ -27,7 +27,7 @@ function AddToCSpellWordlist(opts, shouldLint)
 	if vim.fn.index(existing_words.words, new_word) == -1 then
 		table.insert(existing_words.words, new_word)
 		vim.fn.writefile({ vim.fn.json_encode(existing_words) }, cspell_file)
-		print('Added word "' .. new_word .. '" to cspell.json wordlist.')
+		print('Added word "' .. new_word .. '" to global cspell wordlist.')
 	else
 		print('Word "' .. new_word .. '" already exists in the wordlist.')
 	end
@@ -56,6 +56,8 @@ return {
 		"mfussenegger/nvim-lint",
 		config = function()
 			local lint = require("lint")
+
+			lint.linters.cspell.env = { CSPELL_CONFIG = "~/.cspell.json" }
 
 			lint.linters_by_ft = {
 				javascript = { "eslint_d", "cspell" },

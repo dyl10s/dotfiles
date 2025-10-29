@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -x
+cd ~/repos/bindplane-op-enterprise
+go build -o bindplane ./cmd/bindplane/main.go
+sudo mv bindplane /usr/local/bin/bindplane

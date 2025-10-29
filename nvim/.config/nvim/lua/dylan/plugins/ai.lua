@@ -1,54 +1,83 @@
 return {
-	"yetone/avante.nvim",
-	event = "VeryLazy",
-	version = false,
-	opts = {
-		provider = 'gemini',
-		providers = {
-			gemini = {
-				model = "gemini-2.5-flash-preview-04-17",
-			}
-		}
-	},
-	build = "make",
+	"NickvanDyke/opencode.nvim",
 	dependencies = {
-		"nvim-treesitter/nvim-treesitter",
-		"stevearc/dressing.nvim",
-		"nvim-lua/plenary.nvim",
-		"MunifTanjim/nui.nvim",
-
-		"echasnovski/mini.pick",   -- for file_selector provider mini.pick
-		"nvim-telescope/telescope.nvim", -- for file_selector provider telescope
-		"ibhagwan/fzf-lua",        -- for file_selector provider fzf
-		"stevearc/dressing.nvim",  -- for input provider dressing
-		"folke/snacks.nvim",       -- for input provider snacks
-		"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-		'Kaiser-Yang/blink-cmp-avante',
-		{
-			-- support for image pasting
-			"HakonHarnes/img-clip.nvim",
-			event = "VeryLazy",
-			opts = {
-				-- recommended settings
-				default = {
-					embed_image_as_base64 = false,
-					prompt_for_file_name = false,
-					drag_and_drop = {
-						insert_mode = true,
-					},
-					-- required for Windows users
-					use_absolute_path = true,
-
-				},
-			},
-		},
-		{
-			-- Make sure to set this up properly if you have lazy=true
-			'MeanderingProgrammer/render-markdown.nvim',
-			opts = {
-				file_types = { "markdown", "Avante" },
-			},
-			ft = { "markdown", "Avante" },
-		},
+		-- Recommended for `ask()` and `select()`.
+		-- Required for `toggle()`.
+		{ "folke/snacks.nvim", opts = { input = {}, picker = {} } },
 	},
+	config = function()
+		vim.g.opencode_opts = {
+			-- Your configuration, if any — see `lua/opencode/config.lua`, or "goto definition" on `opencode_opts`.
+		}
+
+		-- Required for `vim.g.opencode_opts.auto_reload`.
+		vim.o.autoread = true
+
+		-- Recommended/example keymaps.
+		local keymaps = {
+			{
+				modes = { "n", "x" },
+				key = "<leader>oa",
+				func = function() require("opencode").ask("@this: ", { submit = true }) end,
+				desc = "🤖 Ask about this"
+			},
+			{
+				modes = { "n", "x" },
+				key = "<leader>os",
+				func = function() require("opencode").select() end,
+				desc = "🤖 Select prompt"
+			},
+			{
+				modes = { "n", "x" },
+				key = "<leader>o+",
+				func = function() require("opencode").prompt("@this") end,
+				desc = "🤖 Add this"
+			},
+			{
+				modes = "n",
+				key = "<leader>ot",
+				func = function() require("opencode").toggle() end,
+				desc = "🤖 Toggle embedded"
+			},
+			{
+				modes = "n",
+				key = "<leader>oc",
+				func = function() require("opencode").command() end,
+				desc = "🤖 Select command"
+			},
+			{
+				modes = "n",
+				key = "<leader>on",
+				func = function() require("opencode").command("session_new") end,
+				desc = "🤖 New session"
+			},
+			{
+				modes = "n",
+				key = "<leader>oi",
+				func = function() require("opencode").command("session_interrupt") end,
+				desc = "🤖 Interrupt session"
+			},
+			{
+				modes = "n",
+				key = "<leader>oA",
+				func = function() require("opencode").command("agent_cycle") end,
+				desc = "🤖 Cycle selected agent"
+			},
+			{
+				modes = "n",
+				key = "<S-C-u>",
+				func = function() require("opencode").command("messages_half_page_up") end,
+				desc = "🤖 Messages half page up"
+			},
+			{
+				modes = "n",
+				key = "<S-C-d>",
+				func = function() require("opencode").command("messages_half_page_down") end,
+				desc = "🤖 Messages half page down"
+			},
+		}
+		for _, km in ipairs(keymaps) do
+			vim.keymap.set(km.modes, km.key, km.func, { desc = km.desc })
+		end
+	end,
 }

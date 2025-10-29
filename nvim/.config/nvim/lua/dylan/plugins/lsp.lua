@@ -36,20 +36,22 @@ return {
 
 			require("mason-lspconfig").setup_handlers {
 				function(server_name) -- default handler (optional)
-					lspconfig[server_name].setup {
+					vim.lsp.config[server_name] = {
 						capabilities = capabilities,
 					}
+					vim.lsp.enable(server_name)
 				end,
 				["html"] = function()
-					lspconfig.html.setup {
+					vim.lsp.config.html = {
 						capabilities = capabilities,
 						init_options = {
 							provideFormatter = false
 						}
 					}
+					vim.lsp.enable("html")
 				end,
 				["lua_ls"] = function()
-					lspconfig.lua_ls.setup {
+					vim.lsp.config.lua_ls = {
 						capabilities = capabilities,
 						diagnostics = {
 							globals = {
@@ -60,9 +62,10 @@ return {
 							library = vim.api.nvim_get_runtime_file("", true)
 						}
 					}
+					vim.lsp.enable("lua_ls")
 				end,
 				["clangd"] = function()
-					lspconfig.clangd.setup {
+					vim.lsp.config.clangd = {
 						cmd = {
 							-- see clangd --help-hidden
 							"clangd",
@@ -83,10 +86,11 @@ return {
 							semanticHighlighting = true,
 						},
 					}
+					vim.lsp.enable("clangd")
 				end,
 				["ts_ls"] = function()
 					if enableTSGO then
-						lspconfig.ts_ls.setup {
+						vim.lsp.config.ts_ls = {
 							cmd = { "tsgo", "--lsp", "-stdio" },
 							capabilities = capabilities,
 							lint_options = {
@@ -102,6 +106,7 @@ return {
 								}
 							}
 						}
+						vim.lsp.enable("ts_ls")
 					end
 				end,
 				["angularls"] = function()
@@ -139,7 +144,7 @@ return {
 					local default_probe_dir = get_probe_dir(vim.fn.getcwd())
 					local default_angular_core_version = get_angular_core_version(vim.fn.getcwd())
 
-					lspconfig.angularls.setup {
+					vim.lsp.config.angularls = {
 						capabilities = capabilities,
 						single_file_support = false,
 						root_dir = util.root_pattern("nx.json", "angular.json"),
@@ -171,10 +176,11 @@ return {
 							}
 						end,
 					}
+					vim.lsp.enable("angularls")
 				end,
 				["vtsls"] = function()
 					if not enableTSGO then
-						lspconfig.vtsls.setup {
+						vim.lsp.config.vtsls = {
 							settings = {
 								complete_function_calls = true,
 								experimental = {
@@ -199,6 +205,7 @@ return {
 								}
 							}
 						}
+						vim.lsp.enable("vtsls")
 
 						local lsp_vtsls_augroup = vim.api.nvim_create_augroup("lsp-vtsls", { clear = true })
 

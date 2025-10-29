@@ -122,14 +122,24 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # go
-export PATH=$PATH:/usr/local/go/bin:/home/dylan/go/bin
+export PATH="$PATH:/usr/local/go/bin:$HOME/go/bin"
+# sets the tempdir for go because of kandji being mean
+# export TMPDIR=$HOME/tmp && mkdir -p $TMPDIR
+
 
 # fnm aliased as nvm
 FNM_PATH="/home/dylan/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
   export PATH="/home/dylan/.local/share/fnm:$PATH"
-  eval "`fnm env`"
 fi
+
+# fnm for mac
+FNM_PATH="/opt/homebrew/bin"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="/opt/homebrew/bin/fnm:$PATH"
+fi
+
+eval "$(fnm env --use-on-cd --shell zsh)"
 
 alias nvm="fnm"
 
@@ -202,6 +212,23 @@ if [ -f '/Users/dylan/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/dylan/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/dylan/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
+# Java
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
-alias bp="cd ~/repos/bindplane-op-enterprise && go run ./cmd/bindplane/main.go"
-alias bindplane="cd ~/repos/bindplane-op-enterprise && go run ./cmd/bindplane/main.go"
+# bindplane
+b() {
+  bindplane "$@"
+}
+compdef _bindplane bindplane
+compdef _b b
+
+export BP_DEV_HOME=/Users/dylan/repos/bindplane-op-enterprise
+
+fpath=(~/.zsh_completions /Users/dylan/.zsh_completions /Users/dylan/.oh-my-zsh/plugins/git /Users/dylan/.oh-my-zsh/functions /Users/dylan/.oh-my-zsh/completions /Users/dylan/.oh-my-zsh/custom/functions /Users/dylan/.oh-my-zsh/custom/completions /Users/dylan/.oh-my-zsh/cache/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions)
+autoload -Uz compinit
+compinit -u
+
+# opencode
+export PATH=/Users/dylan/.opencode/bin:$PATH
+
+. "$HOME/.local/bin/env"

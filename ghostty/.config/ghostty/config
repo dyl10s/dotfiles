@@ -1,3 +1,11 @@
-font-family = Agave Nerd Font Mono
-theme = catppuccin-frappe
+font-family = CaskaydiaCove Nerd Font Mono
+theme = Catppuccin Macchiato
 font-size = 20
+custom-shader = ~/dotfiles/ghostty/.config/ghostty/cursor_smear.glsl
+custom-shader = ~/dotfiles/ghostty/.config/ghostty/background.glsl
+background-image = background.png
+background-image-opacity = 0.1
+background-image-fit = cover
+background-opacity = 0.99
+background-opacity-cells = true
+background-blur = true

@@ -16,6 +16,8 @@ brew install --cask obsidian
 brew install --cask slack
 brew install --cask studio-3t   # confirmed available :contentReference[oaicite:2]{index=2}
 brew install --cask google-chrome
+brew install --cask pgadmin4
+brew install postgresql@17
 
 # Set default shell
 chsh -s "$(which zsh)"
@@ -69,7 +71,7 @@ else
 fi
 
 # Git global config
-git config --global user.email "dylanstrohschein@gmail.com"
+git config --global user.email "dylan.strohschein@bindplane.com"
 git config --global user.name "Dylan Strohschein"
 
 # Neovim fetch (if defined)
