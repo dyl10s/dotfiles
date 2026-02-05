@@ -2,3 +2,4 @@
 /Users/dylan/docker-files/agent
 /Users/dylan/dotfiles/custom-scripts/custom-scripts
 /Users/dylan/repos/scripts/azureeventbus
+/Users/dylan/Documents/blitz

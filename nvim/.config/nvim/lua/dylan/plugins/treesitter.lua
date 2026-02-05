@@ -21,13 +21,20 @@ return {
 			})
 
 			configs.setup({
-				ensure_installed = { "typescript", "lua", "javascript", "html", "angular" },
+				ensure_installed = { "typescript", "lua", "javascript", "html", "angular", "sql" },
 				sync_install = false,
 				auto_install = true,
 				highlight = { enable = true },
 				indent = { enable = true },
 				autotag = { enable = true },
+				modules = {},
+				ignore_install = {}
 			})
 		end
+	},
+	{
+		"nvim-treesitter/playground",
+		cmd = "TSPlaygroundToggle",
+		dependencies = { "nvim-treesitter/nvim-treesitter" },
 	}
 }

@@ -32,6 +32,17 @@ return {
 			local util = require("lspconfig.util")
 			local userLspAuGroup = vim.api.nvim_create_augroup('UserLspConfig', {})
 
+			-- vim.api.nvim_create_autocmd('FileType', {
+			-- 	pattern = 'yaml',
+			-- 	callback = function()
+			-- 		vim.lsp.start({
+			-- 			name = 'otel-collector-ls',
+			-- 			cmd = { '/Users/dylan/repos/otel-collector-ls/bin/otel-collector-ls' },
+			-- 			root_dir = vim.fs.root(0, '.git'),
+			-- 		})
+			-- 	end,
+			-- })
+
 			local enableTSGO = false;
 
 			require("mason-lspconfig").setup_handlers {
@@ -193,7 +204,7 @@ return {
 										maxTsServerMemory = 8192
 									},
 									preferences = {
-										importModuleSpecifier = "project-relative"
+										importModuleSpecifier = "non-relative"
 									},
 									suggest = {
 										completeFunctionCalls = false
@@ -218,9 +229,9 @@ return {
 								local isDone = false;
 
 								vtsls.commands["add_missing_imports"](0, function()
-									vtsls.commands["organize_imports"](0, function()
-										isDone = true;
-									end)
+									isDone = true;
+									-- vtsls.commands["organize_imports"](0, function()
+									-- end)
 								end)
 
 								vim.wait(500, function()
@@ -273,6 +284,20 @@ return {
 					createBufferBind('n', '<leader>f', function()
 						vim.lsp.buf.format { async = true }
 					end, "Format")
+				end,
+			})
+
+			-- Restart LSP when git branch changes
+			local last_git_head = vim.fn.system("git rev-parse HEAD 2>/dev/null"):gsub("\n", "")
+			vim.api.nvim_create_autocmd("FocusGained", {
+				group = userLspAuGroup,
+				callback = function()
+					local git_head = vim.fn.system("git rev-parse HEAD 2>/dev/null"):gsub("\n", "")
+					if last_git_head and git_head ~= last_git_head then
+						vim.cmd("silent! LspRestart")
+						vim.notify("lsp restarted branch change", vim.log.levels.INFO)
+					end
+					last_git_head = git_head
 				end,
 			})
 		end

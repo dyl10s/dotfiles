@@ -9,4 +9,3 @@ background-image-fit = cover
 background-opacity = 0.99
 background-opacity-cells = true
 background-blur = true
-keybind = shift+enter=text:\x1b\r
