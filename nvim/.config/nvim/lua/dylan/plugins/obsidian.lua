@@ -1,13 +1,18 @@
 return {
 	"epwalsh/obsidian.nvim",
 	version = "*", -- recommended, use latest release instead of latest commit
-	event = "VeryLazy",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 	},
+	keys = {
+		{ "<leader>Od", "<cmd>ObsidianToday<CR>", desc = "Open daily obsidian note" },
+		{ "<leader>Oy", "<cmd>ObsidianYesterday<CR>", desc = "Open yesterday's obsidian note" },
+		{ "<leader>Os", "<cmd>ObsidianSearch<CR>", desc = "Search obsidian notes" },
+	},
+	cmd = { "ObsidianToday", "ObsidianYesterday", "ObsidianSearch", "ObsidianNew", "ObsidianOpen" },
+	ft = "markdown",
 	config = function()
-		local obsidian = require("obsidian")
-		obsidian.setup({
+		require("obsidian").setup({
 			workspaces = {
 				{
 					name = "notes",
@@ -29,9 +34,5 @@ return {
 				}
 			}
 		})
-
-		vim.keymap.set("n", "<leader>Od", [[:ObsidianToday<CR>]], { desc = "Open daily obsidian note" })
-		vim.keymap.set("n", "<leader>Oy", [[:ObsidianYesterday<CR>]], { desc = "Open yesterday's obsidian note" })
-		vim.keymap.set("n", "<leader>Os", [[:ObsidianSearch<CR>]], { desc = "Search obsidian notes" })
 	end
 }

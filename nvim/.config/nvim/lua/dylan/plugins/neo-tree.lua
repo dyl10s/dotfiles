@@ -5,6 +5,7 @@ return {
 		"nvim-tree/nvim-web-devicons",
 		"MunifTanjim/nui.nvim",
 	},
+	lazy = false,
 	config = function()
 		local tree = require("neo-tree")
 
@@ -56,6 +57,12 @@ return {
 					}
 				}
 			}
+		})
+
+		vim.api.nvim_create_autocmd("VimEnter", {
+			callback = function()
+				vim.cmd("Neotree show")
+			end
 		})
 	end
 }

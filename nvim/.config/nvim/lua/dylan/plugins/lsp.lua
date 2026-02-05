@@ -11,6 +11,7 @@ return {
 	{
 		"williamboman/mason.nvim",
 		tag = "v1.11.0",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			{
 				"williamboman/mason-lspconfig.nvim",
@@ -19,29 +20,18 @@ return {
 			"neovim/nvim-lspconfig",
 			"nvim-lua/plenary.nvim",
 			"neovim/nvim-lspconfig",
-			"yioneko/nvim-vtsls"
+			"yioneko/nvim-vtsls",
+			"saghen/blink.cmp",
 		},
 		config = function()
 			require("mason").setup()
 			require("mason-lspconfig").setup()
-			local telescope = require("telescope.builtin")
 
 			-- Set up lspconfig.
 			local capabilities = require('blink.cmp').get_lsp_capabilities()
 			local lspconfig = require("lspconfig")
 			local util = require("lspconfig.util")
 			local userLspAuGroup = vim.api.nvim_create_augroup('UserLspConfig', {})
-
-			-- vim.api.nvim_create_autocmd('FileType', {
-			-- 	pattern = 'yaml',
-			-- 	callback = function()
-			-- 		vim.lsp.start({
-			-- 			name = 'otel-collector-ls',
-			-- 			cmd = { '/Users/dylan/repos/otel-collector-ls/bin/otel-collector-ls' },
-			-- 			root_dir = vim.fs.root(0, '.git'),
-			-- 		})
-			-- 	end,
-			-- })
 
 			local enableTSGO = false;
 
@@ -220,22 +210,21 @@ return {
 
 						local lsp_vtsls_augroup = vim.api.nvim_create_augroup("lsp-vtsls", { clear = true })
 
-						local vtsls = require("vtsls");
+						local vtsls = require("vtsls")
+						local adding_imports = false
 
-						vim.api.nvim_create_autocmd("BufWritePre", {
+						vim.api.nvim_create_autocmd("BufWritePost", {
 							group = lsp_vtsls_augroup,
 							pattern = "*.ts",
 							callback = function()
-								local isDone = false;
+								if adding_imports then return end
+								adding_imports = true
 
 								vtsls.commands["add_missing_imports"](0, function()
-									isDone = true;
-									-- vtsls.commands["organize_imports"](0, function()
-									-- end)
-								end)
-
-								vim.wait(500, function()
-									return isDone;
+									if vim.bo.modified then
+										vim.cmd("silent write")
+									end
+									adding_imports = false
 								end)
 							end,
 						})
@@ -276,7 +265,7 @@ return {
 					createBufferBind('n', 'gd', vim.lsp.buf.definition, "Goto definition")
 					createBufferBind('n', 'K', vim.lsp.buf.hover, "Code hover")
 					createBufferBind('n', '<leader>cr', vim.lsp.buf.rename, "Rename")
-					createBufferBind('n', 'gr', telescope.lsp_references, "Goto references")
+					createBufferBind('n', 'gr', function() require("telescope.builtin").lsp_references() end, "Goto references")
 					createBufferBind('n', 'gi', vim.lsp.buf.implementation, "Goto implementation")
 					createBufferBind('n', '<leader>D', vim.lsp.buf.type_definition, "Type definition")
 					createBufferBind('n', '<leader>ca', vim.lsp.buf.code_action, "Code action")

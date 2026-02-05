@@ -7,6 +7,14 @@ return {
 			dependencies = { 'nvim-neotest/nvim-nio' },
 		},
 	},
+	keys = {
+		{ "<F5>", function() require("dap").continue() end, desc = "Debug: Continue" },
+		{ "<F10>", function() require("dap").step_over() end, desc = "Debug: Step Over" },
+		{ "<F11>", function() require("dap").step_into() end, desc = "Debug: Step Into" },
+		{ "<F12>", function() require("dap").step_out() end, desc = "Debug: Step Out" },
+		{ "<Leader>b", function() require("dap").toggle_breakpoint() end, desc = "Debug: Toggle Breakpoint" },
+		{ "<Leader>dr", function() require("dap").repl.open() end, desc = "Debug: Open REPL" },
+	},
 	config = function()
 		local dap = require("dap")
 		local dapui = require("dapui")
@@ -21,14 +29,6 @@ return {
 		dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
 		dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
 		dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
-
-		-- Keymaps
-		vim.keymap.set("n", "<F5>", dap.continue)
-		vim.keymap.set("n", "<F10>", dap.step_over)
-		vim.keymap.set("n", "<F11>", dap.step_into)
-		vim.keymap.set("n", "<F12>", dap.step_out)
-		vim.keymap.set("n", "<Leader>b", dap.toggle_breakpoint)
-		vim.keymap.set("n", "<Leader>dr", dap.repl.open)
 
 		-- Go adapter
 		dap.adapters.go = function(callback, _)
