@@ -1,13 +1,10 @@
 return {
 	{
 		"nvim-treesitter/nvim-treesitter",
-		dependencies = {
-			"windwp/nvim-ts-autotag",
-		},
-		event = { "BufReadPost", "BufNewFile" },
+		branch = "main",
+		lazy = false,
 		build = ":TSUpdate",
 		config = function()
-			local configs = require("nvim-treesitter.configs")
 
 			vim.filetype.add({
 				extension = {
@@ -21,21 +18,26 @@ return {
 				},
 			})
 
-			configs.setup({
-				ensure_installed = { "typescript", "lua", "javascript", "html", "angular", "sql" },
-				sync_install = false,
-				auto_install = true,
-				highlight = { enable = true },
-				indent = { enable = true },
-				autotag = { enable = true },
-				modules = {},
-				ignore_install = {}
+			require("nvim-treesitter").install({ "typescript", "lua", "javascript", "html", "go" })
+
+			vim.api.nvim_create_autocmd("FileType", {
+				callback = function(args)
+					local ft = vim.bo[args.buf].filetype
+					local lang = vim.treesitter.language.get_lang(ft) or ft
+					if not pcall(vim.treesitter.start, args.buf) then
+						local installed = require("nvim-treesitter").get_installed()
+						local available = require("nvim-treesitter").get_available()
+						if not vim.tbl_contains(installed, lang) and vim.tbl_contains(available, lang) then
+							require("nvim-treesitter").install({ lang })
+						end
+					end
+				end
 			})
 		end
 	},
 	{
-		"nvim-treesitter/playground",
-		cmd = "TSPlaygroundToggle",
-		dependencies = { "nvim-treesitter/nvim-treesitter" },
-	}
+		"windwp/nvim-ts-autotag",
+		event = "InsertEnter",
+		opts = {},
+	},
 }

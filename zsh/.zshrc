@@ -216,14 +216,8 @@ if [ -f '/Users/dylan/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '
 # Java
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
-# bindplane
-b() {
-  bindplane "$@"
-}
-compdef _bindplane bindplane
-compdef _b b
-
 export BP_DEV_HOME=/Users/dylan/repos/bindplane-op-enterprise
+source "$BP_DEV_HOME/dev/aliases"
 
 fpath=(~/.zsh_completions /Users/dylan/.zsh_completions /Users/dylan/.oh-my-zsh/plugins/git /Users/dylan/.oh-my-zsh/functions /Users/dylan/.oh-my-zsh/completions /Users/dylan/.oh-my-zsh/custom/functions /Users/dylan/.oh-my-zsh/custom/completions /Users/dylan/.oh-my-zsh/cache/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions)
 autoload -Uz compinit
@@ -233,3 +227,22 @@ compinit -u
 export PATH=/Users/dylan/.opencode/bin:$PATH
 
 . "$HOME/.local/bin/env"
+
+# Splunk
+export SPLUNK_HOME=/Applications/SplunkForwarder
+
+# Git worktrees
+# Create a new worktree with a branch name "wt -b <name>"
+# Switch to a worktree with "wt <name>"
+wt() {
+	if [[ "$1" == "-b" ]]; then
+		wts=$(git worktree list | awk '{print $1}')
+		wt=$(echo "$wts" | fzf --header="Worktrees")
+		git worktree add "$wt" "$2"
+		git switch "$wt"
+	else
+		wts=$(git worktree list | awk '{print $1}')
+		wt=$(echo "$wts" | fzf --header="Worktrees")
+		git switch "$wt"
+	fi
+}

@@ -19,7 +19,6 @@ return {
 			},
 			"neovim/nvim-lspconfig",
 			"nvim-lua/plenary.nvim",
-			"neovim/nvim-lspconfig",
 			"yioneko/nvim-vtsls",
 			"saghen/blink.cmp",
 		},
