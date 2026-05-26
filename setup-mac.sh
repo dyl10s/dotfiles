@@ -72,7 +72,7 @@ else
 fi
 
 # Git global config
-git config --global user.email "dylan.strohschein@bindplane.com"
+git config --global user.email "dylan.strohschein@dynatrace.com"
 git config --global user.name "Dylan Strohschein"
 
 # Neovim fetch (if defined)
