@@ -8,6 +8,7 @@ return {
 		"marilari88/neotest-vitest",
 		"nvim-neotest/neotest-jest",
 	},
+	event = "VeryLazy",
 	keys = {
 		{ "<leader>tr", function() require("neotest").run.run() end, desc = "Run Nearest Test" },
 		{ "<leader>tf", function() require("neotest").run.run(vim.fn.expand("%")) end, desc = "Run File Tests" },

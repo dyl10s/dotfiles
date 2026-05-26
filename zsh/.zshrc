@@ -204,6 +204,12 @@ fi
 # Kamal Deployment Tool
 alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "${SSH_AUTH_SOCK}:/ssh-agent" -v /var/run/docker.sock:/var/run/docker.sock -e "SSH_AUTH_SOCK=/ssh-agent" ghcr.io/basecamp/kamal:latest'
 
+# Podman instead of Docker
+alias docker='podman'
+export DOCKER_HOST="unix://$HOME/.local/share/containers/podman/machine/podman.sock"
+# Some issue with testcontainers and podman
+export TESTCONTAINERS_RYUK_DISABLED=true
+
 # TSGO
 export PATH="$PATH:/home/dylan/repos/typescript-go/built/local"
 
@@ -231,18 +237,12 @@ export PATH=/Users/dylan/.opencode/bin:$PATH
 # Splunk
 export SPLUNK_HOME=/Applications/SplunkForwarder
 
-# Git worktrees
-# Create a new worktree with a branch name "wt -b <name>"
-# Switch to a worktree with "wt <name>"
-wt() {
-	if [[ "$1" == "-b" ]]; then
-		wts=$(git worktree list | awk '{print $1}')
-		wt=$(echo "$wts" | fzf --header="Worktrees")
-		git worktree add "$wt" "$2"
-		git switch "$wt"
-	else
-		wts=$(git worktree list | awk '{print $1}')
-		wt=$(echo "$wts" | fzf --header="Worktrees")
-		git switch "$wt"
+# Go: auto-download the toolchain pinned in go.mod when it exceeds the installed version
+export GOTOOLCHAIN=auto
+
+# Check if we are in bindplane-op-enterprise repo and run make install
+install_bindplane() {
+	if [[ "$PWD" == *"bindplane-op-enterprise"* ]]; then
+		make install
 	fi
 }

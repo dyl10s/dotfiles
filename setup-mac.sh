@@ -18,6 +18,7 @@ brew install --cask studio-3t   # confirmed available :contentReference[oaicite:
 brew install --cask google-chrome
 brew install --cask pgadmin4
 brew install postgresql@17
+brew install podman
 
 # Set default shell
 chsh -s "$(which zsh)"
@@ -109,3 +110,6 @@ gh extension install dlvhdr/gh-dash
 
 # Git hooks path
 git config --global core.hooksPath ~/.config/git-hooks
+
+# Podman helper
+sudo /opt/homebrew/bin/podman-mac-helper install

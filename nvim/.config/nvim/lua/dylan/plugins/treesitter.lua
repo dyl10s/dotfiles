@@ -18,7 +18,12 @@ return {
 				},
 			})
 
-			require("nvim-treesitter").install({ "typescript", "lua", "javascript", "html", "go" })
+			require("nvim-treesitter").install({
+				"bash", "csv", "dockerfile", "dtd", "git_rebase", "gitcommit", "gitignore",
+				"go", "gomod", "gosum", "gowork", "graphql", "html", "javascript", "jinja",
+				"jinja_inline", "json", "lua", "make", "pem", "sql", "toml", "tsv", "tsx",
+				"typescript", "xml", "yaml", "zsh",
+			})
 
 			vim.api.nvim_create_autocmd("FileType", {
 				callback = function(args)

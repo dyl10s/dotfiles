@@ -34,6 +34,18 @@ return {
 
 			local enableTSGO = false;
 
+			-- gopls managed via go install, not Mason
+			vim.lsp.config.gopls = {
+				cmd = { "/Users/dylan/go/bin/gopls", "-remote=auto", "-remote.listen.timeout=0" },
+				capabilities = capabilities,
+				settings = {
+					gopls = {
+						buildFlags = { "-tags=janitor,evals" },
+					},
+				},
+			}
+			vim.lsp.enable("gopls")
+
 			require("mason-lspconfig").setup_handlers {
 				function(server_name) -- default handler (optional)
 					vim.lsp.config[server_name] = {
@@ -264,7 +276,8 @@ return {
 					createBufferBind('n', 'gd', vim.lsp.buf.definition, "Goto definition")
 					createBufferBind('n', 'K', vim.lsp.buf.hover, "Code hover")
 					createBufferBind('n', '<leader>cr', vim.lsp.buf.rename, "Rename")
-					createBufferBind('n', 'gr', function() require("telescope.builtin").lsp_references() end, "Goto references")
+					createBufferBind('n', 'gr', function() require("telescope.builtin").lsp_references() end,
+						"Goto references")
 					createBufferBind('n', 'gi', vim.lsp.buf.implementation, "Goto implementation")
 					createBufferBind('n', '<leader>D', vim.lsp.buf.type_definition, "Type definition")
 					createBufferBind('n', '<leader>ca', vim.lsp.buf.code_action, "Code action")
