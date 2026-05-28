@@ -19,6 +19,7 @@ brew install --cask google-chrome
 brew install --cask pgadmin4
 brew install postgresql@17
 brew install podman
+brew install withgraphite/tap/graphite
 
 # Set default shell
 chsh -s "$(which zsh)"
@@ -113,3 +114,8 @@ git config --global core.hooksPath ~/.config/git-hooks
 
 # Podman helper
 sudo /opt/homebrew/bin/podman-mac-helper install
+
+# Graphite auth
+echo "Visit https://app.graphite.com/activate"
+read -s -p "Enter your Graphite CLI Token: " GRAPHITE_CLI_TOKEN
+gt auth --token $GRAPHITE_CLI_TOKEN
