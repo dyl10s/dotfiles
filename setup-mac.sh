@@ -20,6 +20,9 @@ brew install --cask pgadmin4
 brew install postgresql@17
 brew install podman
 brew install withgraphite/tap/graphite
+brew install --cask claude-code
+brew install --cask zoom
+brew install --cask linear
 
 # Set default shell
 chsh -s "$(which zsh)"
@@ -76,6 +79,17 @@ fi
 git config --global user.email "dylan.strohschein@dynatrace.com"
 git config --global user.name "Dylan Strohschein"
 
+# Desktop wallpaper
+WALLPAPER="$HOME/dotfiles/wallpapers/work.png"
+if [ -f "$WALLPAPER" ]; then
+  osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$WALLPAPER\""
+fi
+
+# Apply changes
+killall Dock 2>/dev/null || true
+killall Finder 2>/dev/null || true
+killall SystemUIServer 2>/dev/null || true
+
 # Neovim fetch (if defined)
 sudo neovim-fetch
 
@@ -114,6 +128,9 @@ git config --global core.hooksPath ~/.config/git-hooks
 
 # Podman helper
 sudo /opt/homebrew/bin/podman-mac-helper install
+
+# Initialize the podman machine (zshrc handles starting it)
+podman machine init
 
 # Graphite auth
 echo "Visit https://app.graphite.com/activate"

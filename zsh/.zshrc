@@ -210,6 +210,33 @@ export DOCKER_HOST="unix://$HOME/.local/share/containers/podman/machine/podman.s
 # Some issue with testcontainers and podman
 export TESTCONTAINERS_RYUK_DISABLED=true
 
+# Lazy-start podman machine + Background Containers tmux session (backgrounded — does not block shell startup)
+# Add more containers as "Pane Name:command" pairs in the array below. Commands run with cwd = ~/docker.
+{
+    if [[ ! -S "$HOME/.local/share/containers/podman/machine/podman.sock" ]]; then
+        podman machine list --format '{{.Name}}' | grep -q . || podman machine init
+        podman machine start
+    fi
+    if ! tmux has-session -t="Background Containers" 2>/dev/null; then
+        bg_containers=(
+            "Postgres:./postgres.sh"
+            "Redis:./redis.sh"
+        )
+        first=1
+        for entry in "${bg_containers[@]}"; do
+            name="${entry%%:*}"
+            cmd="${entry#*:}"
+            if (( first )); then
+                tmux new-session -ds "Background Containers" -n "$name" -c "$HOME/docker"
+                first=0
+            else
+                tmux new-window -t "Background Containers" -n "$name" -c "$HOME/docker"
+            fi
+            tmux send-keys -t "Background Containers:$name" "$cmd" Enter
+        done
+    fi
+} >/dev/null 2>&1 &!
+
 # TSGO
 export PATH="$PATH:/home/dylan/repos/typescript-go/built/local"
 
@@ -232,7 +259,7 @@ compinit -u
 # opencode
 export PATH=/Users/dylan/.opencode/bin:$PATH
 
-. "$HOME/.local/bin/env"
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
 # Splunk
 export SPLUNK_HOME=/Applications/SplunkForwarder
