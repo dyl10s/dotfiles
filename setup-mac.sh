@@ -10,7 +10,7 @@ fi
 brew update
 
 # Install CLI tools & apps
-brew install gh tmux zsh stow cmake unzip curl ninja gettext luarocks ripgrep fzf lazygit node wget fnm
+brew install gh tmux zsh stow cmake unzip curl ninja gettext luarocks ripgrep fzf lazygit node wget fnm htop imagemagick
 brew install --cask wezterm     # confirmed available :contentReference[oaicite:1]{index=1}
 brew install --cask obsidian
 brew install --cask slack
@@ -20,7 +20,6 @@ brew install --cask pgadmin4
 brew install postgresql@17
 brew install podman
 brew install withgraphite/tap/graphite
-brew install --cask claude-code
 brew install --cask zoom
 brew install --cask linear
 
@@ -84,6 +83,64 @@ WALLPAPER="$HOME/dotfiles/wallpapers/work.png"
 if [ -f "$WALLPAPER" ]; then
   osascript -e "tell application \"System Events\" to tell every desktop to set picture to \"$WALLPAPER\""
 fi
+
+# Remap Caps Lock to Escape (persists across reboots via LaunchAgent)
+KEYMAP_PLIST="$HOME/Library/LaunchAgents/com.local.KeyRemapping.plist"
+mkdir -p "$HOME/Library/LaunchAgents"
+cat > "$KEYMAP_PLIST" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.local.KeyRemapping</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/hidutil</string>
+    <string>property</string>
+    <string>--set</string>
+    <string>{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x700000029}]}</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+</dict>
+</plist>
+EOF
+launchctl unload "$KEYMAP_PLIST" 2>/dev/null || true
+launchctl load "$KEYMAP_PLIST"
+
+# Style new screenshots and copy them to the clipboard (watches the
+# screenshot save location and runs ~/custom-scripts/screenshot-style).
+# Screenshots save to ~/Screenshots instead of a TCC-protected folder
+# (Documents/Desktop/Downloads) so the background agent can read them.
+SCREENSHOT_DIR="$HOME/Screenshots"
+mkdir -p "$SCREENSHOT_DIR"
+defaults write com.apple.screencapture location "$SCREENSHOT_DIR"
+SCREENSHOT_PLIST="$HOME/Library/LaunchAgents/com.local.ScreenshotStyle.plist"
+cat > "$SCREENSHOT_PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.local.ScreenshotStyle</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$HOME/custom-scripts/screenshot-style</string>
+  </array>
+  <key>WatchPaths</key>
+  <array>
+    <string>$SCREENSHOT_DIR</string>
+  </array>
+  <key>StandardOutPath</key>
+  <string>/tmp/screenshot-style.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/screenshot-style.log</string>
+</dict>
+</plist>
+EOF
+launchctl unload "$SCREENSHOT_PLIST" 2>/dev/null || true
+launchctl load "$SCREENSHOT_PLIST"
 
 # Apply changes
 killall Dock 2>/dev/null || true

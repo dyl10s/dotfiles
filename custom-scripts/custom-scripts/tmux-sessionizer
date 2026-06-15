@@ -16,7 +16,7 @@ while IFS= read -r dir; do
     if [[ ! " ${directories[@]} " =~ " $dir " ]]; then
         directories+=("$dir")
     fi
-done < <(find ~ ~/repos -mindepth 1 -maxdepth 1 -type d)
+done < <(find ~ ~/repos ~/git -mindepth 1 -maxdepth 1 -type d)
 
 # Use fzf to select a directory
 if [[ $# -eq 1 ]]; then

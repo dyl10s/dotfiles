@@ -2,11 +2,16 @@
 # zmodload zsh/zprof
 source ~/secrets.sh
 
+# Mr Windows Defender hates nvim logs
+export NVIM_LOG_FILE="/dev/null"
+
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$HOME/custom-scripts:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+
+export REPOS="$HOME/git"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -116,7 +121,7 @@ then
 fi
 
 # bun completions
-[ -s "/home/dylan/.bun/_bun" ] && source "/home/dylan/.bun/_bun"
+[ -s "$HOME/.bun/shell.zsh" ] && source "$HOME/.bun/shell.zsh"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
@@ -129,9 +134,9 @@ export PATH="$PATH:/usr/local/go/bin:$HOME/go/bin"
 
 
 # fnm aliased as nvm
-FNM_PATH="/home/dylan/.local/share/fnm"
+FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
-  export PATH="/home/dylan/.local/share/fnm:$PATH"
+  export PATH="$HOME/.local/share/fnm:$PATH"
 fi
 
 # fnm for mac
@@ -148,10 +153,10 @@ alias nvm="fnm"
 # zprof
 
 # Turso
-export PATH="/home/dylan/.turso:$PATH"
+export PATH="$HOME/.turso:$PATH"
 
 # Python install dir
-export PATH="/home/dylan/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
 # CUDA
 export PATH="/usr/local/cuda-12.4/targets/x86_64-linux/lib:$PATH"
@@ -238,26 +243,26 @@ export TESTCONTAINERS_RYUK_DISABLED=true
 } >/dev/null 2>&1 &!
 
 # TSGO
-export PATH="$PATH:/home/dylan/repos/typescript-go/built/local"
+export PATH="$PATH:$REPOS/typescript-go/built/local"
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/dylan/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/dylan/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f '$HOME/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '$HOME/Downloads/google-cloud-sdk/path.zsh.inc'; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/dylan/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/dylan/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f '$HOME/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
 
 # Java
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
-export BP_DEV_HOME=/Users/dylan/repos/bindplane-op-enterprise
+export BP_DEV_HOME=$REPOS/bindplane-op-enterprise
 source "$BP_DEV_HOME/dev/aliases"
 
-fpath=(~/.zsh_completions /Users/dylan/.zsh_completions /Users/dylan/.oh-my-zsh/plugins/git /Users/dylan/.oh-my-zsh/functions /Users/dylan/.oh-my-zsh/completions /Users/dylan/.oh-my-zsh/custom/functions /Users/dylan/.oh-my-zsh/custom/completions /Users/dylan/.oh-my-zsh/cache/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions)
+fpath=(~/.zsh_completions $HOME/.zsh_completions $HOME/.oh-my-zsh/plugins/git $HOME/.oh-my-zsh/functions $HOME/.oh-my-zsh/completions $HOME/.oh-my-zsh/custom/functions $HOME/.oh-my-zsh/custom/completions $HOME/.oh-my-zsh/cache/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions)
 autoload -Uz compinit
 compinit -u
 
 # opencode
-export PATH=/Users/dylan/.opencode/bin:$PATH
+export PATH=$HOME/.opencode/bin:$PATH
 
 [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
@@ -273,3 +278,4 @@ install_bindplane() {
 		make install
 	fi
 }
+

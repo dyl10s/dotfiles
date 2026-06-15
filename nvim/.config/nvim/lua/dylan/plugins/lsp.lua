@@ -34,24 +34,23 @@ return {
 
 			local enableTSGO = false;
 
-			-- gopls managed via go install, not Mason
-			vim.lsp.config.gopls = {
-				cmd = { "/Users/dylan/go/bin/gopls", "-remote=auto", "-remote.listen.timeout=0" },
-				capabilities = capabilities,
-				settings = {
-					gopls = {
-						buildFlags = { "-tags=janitor,evals" },
-					},
-				},
-			}
-			vim.lsp.enable("gopls")
-
 			require("mason-lspconfig").setup_handlers {
 				function(server_name) -- default handler (optional)
 					vim.lsp.config[server_name] = {
 						capabilities = capabilities,
 					}
 					vim.lsp.enable(server_name)
+				end,
+				["gopls"] = function()
+					vim.lsp.config.gopls = {
+						capabilities = capabilities,
+						settings = {
+							gopls = {
+								buildFlags = { "-tags=janitor,evals" },
+							},
+						},
+					}
+					vim.lsp.enable("gopls")
 				end,
 				["html"] = function()
 					vim.lsp.config.html = {
@@ -242,7 +241,6 @@ return {
 					end
 				end
 			}
-
 
 			-- Global mappings.
 			-- See `:help vim.diagnostic.*` for documentation on any of the below functions

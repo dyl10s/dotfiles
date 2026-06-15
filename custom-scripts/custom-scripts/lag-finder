@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+#
+# scan-watch.sh — find out which files are getting hammered (and rescanned by
+# Microsoft Defender) while something like neovim feels laggy.
+#
+# It does two things:
+#   1. Captures fs_usage for N seconds and ranks the most-touched file paths,
+#      split out by who is touching them (wdavdaemon, everything else).
+#   2. Dumps Defender's own real-time-protection scan statistics, sorted.
+#
+# Usage:
+#   sudo ./scan-watch.sh [seconds]      # default 15s capture
+#
+# While it's capturing, GO REPRODUCE THE LAG.
+# The path that dominates the output is your culprit.
+#
+# Requires sudo because fs_usage needs root.
+
+set -euo pipefail
+
+DURATION="${1:-15}"
+TS="$(date +%Y%m%d-%H%M%S)"
+RAW="/tmp/scan-watch-${TS}.log"
+
+# ---- sanity checks -------------------------------------------------------
+if [[ "$(uname)" != "Darwin" ]]; then
+  echo "This script is macOS-only (uses fs_usage)." >&2
+  exit 1
+fi
+
+if [[ "$(id -u)" -ne 0 ]]; then
+  echo "fs_usage needs root. Re-run with:  sudo $0 ${DURATION}" >&2
+  exit 1
+fi
+
+# ---- 1. Defender's own scan stats (before) -------------------------------
+echo "==========================================================="
+echo " Microsoft Defender real-time-protection statistics"
+echo "==========================================================="
+if command -v mdatp >/dev/null 2>&1; then
+  # Stats collection must be enabled to get real numbers; try to enable it.
+  mdatp config real-time-protection-statistics --value enabled >/dev/null 2>&1 \
+    || echo "(could not enable RTP statistics — may be policy-locked)"
+  mdatp diagnostic real-time-protection-statistics --sort 2>/dev/null \
+    | grep -E 'Name:|Path:|Total files scanned:|Scan time' \
+    | head -40 \
+    || echo "(no stats available)"
+else
+  echo "(mdatp not found — skipping Defender stats)"
+fi
+echo
+
+# ---- 2. Live file-operation capture --------------------------------------
+echo "==========================================================="
+echo " Capturing file activity for ${DURATION}s"
+echo " >>> GO REPRODUCE THE LAG NOW <<<"
+echo "==========================================================="
+
+# Capture only filesystem-related syscalls. -w = wide, -f filesys = filesystem class.
+fs_usage -w -f filesys > "$RAW" 2>/dev/null &
+FS_PID=$!
+
+# Countdown so you know how long to keep stressing it.
+for ((i=DURATION; i>0; i--)); do
+  printf "\r  capturing... %2ds left " "$i"
+  sleep 1
+done
+printf "\r  capture complete.            \n\n"
+
+kill "$FS_PID" 2>/dev/null || true
+wait "$FS_PID" 2>/dev/null || true
+
+# ---- 3. Aggregate --------------------------------------------------------
+# fs_usage puts the file path as the last whitespace-heavy field and the
+# "process.pid" as the final token. We extract the path (longest /-rooted
+# token on the line) and the trailing process token.
+
+extract() {
+  # $1 = process filter regex (matched against trailing process.pid token)
+  awk -v re="$1" '
+    {
+      proc = $NF
+      if (proc ~ re) {
+        # find the first token that looks like an absolute path
+        for (i = 1; i <= NF; i++) {
+          if ($i ~ /^\//) { print $i; break }
+        }
+      }
+    }
+  ' "$RAW" | sort | uniq -c | sort -rn | head -15
+}
+
+echo "==========================================================="
+echo " TOP PATHS touched by Defender (wdavdaemon*) — what it scanned"
+echo "==========================================================="
+extract 'wdavdaemon' || true
+echo
+
+echo "==========================================================="
+echo " TOP PATHS overall (any process)"
+echo "==========================================================="
+awk '{
+  for (i = 1; i <= NF; i++) {
+    if ($i ~ /^\//) { print $i; break }
+  }
+}' "$RAW" | sort | uniq -c | sort -rn | head -20
+echo
+
+# ---- 4. Summary ----------------------------------------------------------
+TOTAL=$(wc -l < "$RAW" | tr -d ' ')
+echo "==========================================================="
+echo " Summary"
+echo "==========================================================="
+echo "  Total fs events captured : ${TOTAL}"
+echo "  Raw log saved to         : ${RAW}"
+echo
+echo "  Interpretation:"
+echo "   - A single path dominating the 'Defender' and 'overall' lists is your"
+echo "     hot file."
+echo "   - If the hot path is a project dir or node_modules/.git, an LSP or"
+echo "     file-watcher is walking it — fix that server's root/ignore config,"
+echo "     or request a Defender folder exclusion for that path."
+echo "   - To inspect the raw capture:  less ${RAW}"
