@@ -207,13 +207,15 @@ alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "${SSH_AUTH_SOCK}:/ssh-
 export PATH="$PATH:/home/dylan/repos/typescript-go/built/local"
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/dylan/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/dylan/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/dylan/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/dylan/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc"; fi
 
 # Java
-export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+if [ -d "/opt/homebrew/opt/openjdk/bin" ]; then
+  export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+fi
 
 # bindplane
 b() {
@@ -222,13 +224,11 @@ b() {
 compdef _bindplane bindplane
 compdef _b b
 
-export BP_DEV_HOME=/Users/dylan/repos/bindplane-op-enterprise
+export BP_DEV_HOME=$HOME/repos/bindplane-op-enterprise
 
-fpath=(~/.zsh_completions /Users/dylan/.zsh_completions /Users/dylan/.oh-my-zsh/plugins/git /Users/dylan/.oh-my-zsh/functions /Users/dylan/.oh-my-zsh/completions /Users/dylan/.oh-my-zsh/custom/functions /Users/dylan/.oh-my-zsh/custom/completions /Users/dylan/.oh-my-zsh/cache/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions)
-autoload -Uz compinit
-compinit -u
+# Completions are handled by oh-my-zsh
 
 # opencode
-export PATH=/Users/dylan/.opencode/bin:$PATH
+export PATH=$HOME/.opencode/bin:$PATH
 
-. "$HOME/.local/bin/env"
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"

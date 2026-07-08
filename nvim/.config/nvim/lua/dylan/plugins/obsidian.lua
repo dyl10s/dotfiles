@@ -6,6 +6,24 @@ return {
 		"nvim-lua/plenary.nvim",
 	},
 	config = function()
+		local home = os.getenv("HOME")
+		local path = home .. "/Documents/Notes"
+
+		-- Function to check if a path exists
+		local function path_exists(p)
+			local f = io.open(p, "r")
+			if f then
+				f:close()
+				return true
+			end
+			return false
+		end
+
+		-- Create the directory if it doesn't exist
+		if not path_exists(path) then
+			os.execute("mkdir -p " .. path)
+		end
+
 		local obsidian = require("obsidian")
 		obsidian.setup({
 			workspaces = {
