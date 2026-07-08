@@ -1,6 +1,6 @@
 # Enable startup debug time
 # zmodload zsh/zprof
-source ~/secrets.sh
+[ -f ~/secrets.sh ] && source ~/secrets.sh
 
 # Mr Windows Defender hates nvim logs
 export NVIM_LOG_FILE="/dev/null"
@@ -8,218 +8,172 @@ export NVIM_LOG_FILE="/dev/null"
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$HOME/custom-scripts:/usr/local/bin:$PATH
 
-# Path to your oh-my-zsh installation.
+# ============================================================
+# oh-my-zsh (only loaded if actually installed)
+# ============================================================
 export ZSH="$HOME/.oh-my-zsh"
+
+if [ -d "$ZSH" ]; then
+	# Add my custom completions, if present
+	[ -d ~/.zsh_completions ] && fpath+=(~/.zsh_completions)
+
+	autoload -Uz compinit
+	compinit -u
+
+	ZSH_THEME="robbyrussell"
+	zstyle ':omz:update' mode auto
+
+	plugins=(git)
+
+	source "$ZSH/oh-my-zsh.sh"
+else
+	# Fallback completion so the shell isn't totally bare without oh-my-zsh
+	autoload -Uz compinit && compinit -u
+fi
 
 export REPOS="$HOME/git"
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
-
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
-
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
-
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Speed up nvm plugin with lazy loading
-export NVM_LAZY_LOAD=true
-export NVM_COMPLETION=true
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
-
-source $ZSH/oh-my-zsh.sh
-
+# ============================================================
 # User configuration
+# ============================================================
+command -v nvim >/dev/null 2>&1 && export EDITOR='nvim' || export EDITOR='vim'
 
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-export EDITOR='nvim'
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-if [ -z "$TMUX" ]
-then
-	tmux attach || tmux
+# Only auto-attach tmux if tmux is installed, we're in an interactive
+# shell, and we're not already inside tmux/screen
+if command -v tmux >/dev/null 2>&1 && [ -z "$TMUX" ] && [[ $- == *i* ]]; then
+	tmux attach 2>/dev/null || tmux
 fi
 
-# bun completions
-[ -s "$HOME/.bun/shell.zsh" ] && source "$HOME/.bun/shell.zsh"
-
+# ============================================================
 # bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+# ============================================================
+if [ -d "$HOME/.bun" ]; then
+	[ -s "$HOME/.bun/shell.zsh" ] && source "$HOME/.bun/shell.zsh"
+	export BUN_INSTALL="$HOME/.bun"
+	export PATH="$BUN_INSTALL/bin:$PATH"
+fi
 
+# ============================================================
 # go
-export PATH="$PATH:/usr/local/go/bin:$HOME/go/bin"
-# sets the tempdir for go because of kandji being mean
-# export TMPDIR=$HOME/tmp && mkdir -p $TMPDIR
+# ============================================================
+[ -d "/usr/local/go/bin" ] && export PATH="$PATH:/usr/local/go/bin"
+[ -d "$HOME/go/bin" ] && export PATH="$PATH:$HOME/go/bin"
+export GOTOOLCHAIN=auto
+[ -d "$REPOS/typescript-go/built/local" ] && export PATH="$PATH:$REPOS/typescript-go/built/local"
 
+# ============================================================
+# fnm (aliased as nvm) — only touched if fnm is actually installed
+# ============================================================
+[ -d "$HOME/.local/share/fnm" ] && export PATH="$HOME/.local/share/fnm:$PATH"
+[ -d "/opt/homebrew/bin" ] && export PATH="/opt/homebrew/bin:$PATH"
 
-# fnm aliased as nvm
-FNM_PATH="$HOME/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$HOME/.local/share/fnm:$PATH"
+if command -v fnm >/dev/null 2>&1; then
+	eval "$(fnm env --use-on-cd --shell zsh)"
+	alias nvm="fnm"
 fi
 
-# fnm for mac
-FNM_PATH="/opt/homebrew/bin"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="/opt/homebrew/bin/fnm:$PATH"
+# ============================================================
+# Misc tool paths (each only added if it exists on this machine)
+# ============================================================
+[ -d "$HOME/.turso" ] && export PATH="$HOME/.turso:$PATH"
+[ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
+[ -d "$HOME/.opencode/bin" ] && export PATH="$HOME/.opencode/bin:$PATH"
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+[ -d "/opt/nvim" ] && export PATH="$PATH:/opt/nvim"
+[ -d "/opt/nvim-linux64/bin" ] && export PATH="$PATH:/opt/nvim-linux64/bin"
+
+[ -f ~/.pyenvrc ] && source ~/.pyenvrc
+
+# CUDA (only if installed at this path)
+if [ -d "/usr/local/cuda-12.4" ]; then
+	[ -d "/usr/local/cuda-12.4/targets/x86_64-linux/lib" ] && \
+		export LD_LIBRARY_PATH="/usr/local/cuda-12.4/targets/x86_64-linux/lib:$LD_LIBRARY_PATH"
+	[ -d "/usr/local/cuda-12.4/bin" ] && export PATH="/usr/local/cuda-12.4/bin:$PATH"
 fi
 
-eval "$(fnm env --use-on-cd --shell zsh)"
+# Java (homebrew openjdk, macOS only)
+[ -d "/opt/homebrew/opt/openjdk/bin" ] && export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
-alias nvm="fnm"
+# Google Cloud SDK
+[ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ] && source "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"
+[ -f "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc" ] && source "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc"
 
-# Enable startup debug time
-# zprof
+# Splunk (only export if the install actually exists)
+[ -d "/Applications/SplunkForwarder" ] && export SPLUNK_HOME=/Applications/SplunkForwarder
 
-# Turso
-export PATH="$HOME/.turso:$PATH"
-
-# Python install dir
-export PATH="$HOME/.local/bin:$PATH"
-
-# CUDA
-export PATH="/usr/local/cuda-12.4/targets/x86_64-linux/lib:$PATH"
-export PATH="/usr/local/cuda-12.4/bin/nvcc:$PATH"
-
-# Aliases
-alias gac="git add . && git commit"
+# ============================================================
+# Aliases (guarded so they don't shadow missing commands)
+# ============================================================
+command -v git >/dev/null 2>&1 && alias gac="git add . && git commit"
 alias merch="npm run management:api"
+command -v aerc >/dev/null 2>&1 && alias email="aerc"
 
-#Better npm install with bun :D
+# Better npm install with bun :D — falls back to plain npm if any
+# required tool (bun/jq/npx) is missing, so this is never a silent
+# no-op or a hard failure on a machine without the full toolchain.
 npm() {
-	if [[ "$1" = "i" && "$#" -eq 1 ]]; then
+	if [[ "$1" = "i" && "$#" -eq 1 ]] \
+		&& command -v bun >/dev/null 2>&1 \
+		&& command -v jq >/dev/null 2>&1 \
+		&& command -v npx >/dev/null 2>&1; then
 		command bun install &&\
-			rm bun.lock &&\
+			rm -f bun.lock &&\
 			contents="$(jq 'del(.trustedDependencies)' package.json)" &&\
 			echo -E "${contents}" > package.json &&\
 			npx prettier -w package.json &&\
-			npm install
+			command npm install
 	else
 		command npm "$@"
 	fi
 }
-
 alias buni="npm i"
-alias email="aerc"
 
-export PATH="$PATH:/opt/nvim/"
-export PATH="$PATH:/opt/nvim-linux64/bin"
+# Kamal Deployment Tool (alias is inert unless docker is installed/used)
+command -v docker >/dev/null 2>&1 && alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "${SSH_AUTH_SOCK}:/ssh-agent" -v /var/run/docker.sock:/var/run/docker.sock -e "SSH_AUTH_SOCK=/ssh-agent" ghcr.io/basecamp/kamal:latest'
 
-if [[ -f ~/.pyenvrc ]]; then
-	source ~/.pyenvrc
+# Podman instead of Docker — only rewire "docker" if podman is actually
+# installed, otherwise leave real docker (or nothing) alone.
+if command -v podman >/dev/null 2>&1; then
+	alias docker='podman'
+	[ -S "$HOME/.local/share/containers/podman/machine/podman.sock" ] && \
+		export DOCKER_HOST="unix://$HOME/.local/share/containers/podman/machine/podman.sock"
+	export TESTCONTAINERS_RYUK_DISABLED=true
 fi
 
-# Map caps to esc
-if [[ $XDG_SESSION_TYPE == "x11" ]]; then
+# ============================================================
+# Input / display tweaks
+# ============================================================
+# Map caps to esc — only if the relevant tool for this session type exists
+if [[ $XDG_SESSION_TYPE == "x11" ]] && command -v setxkbmap >/dev/null 2>&1; then
 	setxkbmap -option caps:escape
-elif [[ -n "$DISPLAY" && -z "$TMUX" ]]; then
-	gsettings set org.gnome.desktop.input-sources xkb-options "['caps:escape']"
+elif [[ -n "$DISPLAY" && -z "$TMUX" ]] && command -v gsettings >/dev/null 2>&1; then
+	gsettings set org.gnome.desktop.input-sources xkb-options "['caps:escape']" 2>/dev/null
 fi
-
 
 # Set the browser to chrome for WSL
-if [ -d "/proc/version" ]; then
-	if [[ $(grep -i Microsoft /proc/version) ]]; then
-		export BROWSER="/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
-		gh config set browser "/mnt/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe"
+# (checks the FILE /proc/version, not a directory — and checks the
+# chrome path exists before wiring it up)
+if [ -f "/proc/version" ] && grep -qi Microsoft /proc/version 2>/dev/null; then
+	CHROME_WIN_PATH="/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+	if [ -f "$CHROME_WIN_PATH" ]; then
+		export BROWSER="${CHROME_WIN_PATH// /\\ }"
+		command -v gh >/dev/null 2>&1 && gh config set browser "$BROWSER"
 	fi
 fi
 
-# Kamal Deployment Tool
-alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "${SSH_AUTH_SOCK}:/ssh-agent" -v /var/run/docker.sock:/var/run/docker.sock -e "SSH_AUTH_SOCK=/ssh-agent" ghcr.io/basecamp/kamal:latest'
-
-# Podman instead of Docker
-alias docker='podman'
-export DOCKER_HOST="unix://$HOME/.local/share/containers/podman/machine/podman.sock"
-# Some issue with testcontainers and podman
-export TESTCONTAINERS_RYUK_DISABLED=true
-
-# Lazy-start podman machine + Background Containers tmux session (backgrounded — does not block shell startup)
-# Add more containers as "Pane Name:command" pairs in the array below. Commands run with cwd = ~/docker.
+# ============================================================
+# Lazy-start podman machine + Background Containers tmux session
+# Only runs if BOTH podman and tmux are installed. Backgrounded so it
+# never blocks shell startup, and any failure inside is swallowed.
+# Add more containers as "Pane Name:command" pairs in the array below.
+# Commands run with cwd = ~/docker (only if that dir exists).
+# ============================================================
+if command -v podman >/dev/null 2>&1 && command -v tmux >/dev/null 2>&1 && [ -d "$HOME/docker" ]; then
 {
     if [[ ! -S "$HOME/.local/share/containers/podman/machine/podman.sock" ]]; then
-        podman machine list --format '{{.Name}}' | grep -q . || podman machine init
+        podman machine list --format '{{.Name}}' 2>/dev/null | grep -q . || podman machine init
         podman machine start
     fi
     if ! tmux has-session -t="Background Containers" 2>/dev/null; then
@@ -231,6 +185,8 @@ export TESTCONTAINERS_RYUK_DISABLED=true
         for entry in "${bg_containers[@]}"; do
             name="${entry%%:*}"
             cmd="${entry#*:}"
+            # only wire up the pane if the referenced script actually exists
+            [ -f "$HOME/docker/${cmd#./}" ] || continue
             if (( first )); then
                 tmux new-session -ds "Background Containers" -n "$name" -c "$HOME/docker"
                 first=0
@@ -241,44 +197,22 @@ export TESTCONTAINERS_RYUK_DISABLED=true
         done
     fi
 } >/dev/null 2>&1 &!
-
-# TSGO
-export PATH="$PATH:$REPOS/typescript-go/built/local"
-
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc"; fi
-
-# Java
-if [ -d "/opt/homebrew/opt/openjdk/bin" ]; then
-  export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 fi
 
-export BP_DEV_HOME=$REPOS/bindplane-op-enterprise
-source "$BP_DEV_HOME/dev/aliases"
+# ============================================================
+# bindplane-op-enterprise (fully optional — no-op if repo isn't present)
+# ============================================================
+export BP_DEV_HOME="$HOME/repos/bindplane-op-enterprise"
 
-export BP_DEV_HOME=$HOME/repos/bindplane-op-enterprise
+[ -f "$BP_DEV_HOME/dev/aliases" ] && source "$BP_DEV_HOME/dev/aliases"
 
-fpath=(~/.zsh_completions $HOME/.zsh_completions $HOME/.oh-my-zsh/plugins/git $HOME/.oh-my-zsh/functions $HOME/.oh-my-zsh/completions $HOME/.oh-my-zsh/custom/functions $HOME/.oh-my-zsh/custom/completions $HOME/.oh-my-zsh/cache/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions)
-autoload -Uz compinit
-compinit -u
-
-# opencode
-export PATH=$HOME/.opencode/bin:$PATH
-
-[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
-
-# Splunk
-export SPLUNK_HOME=/Applications/SplunkForwarder
-
-# Go: auto-download the toolchain pinned in go.mod when it exceeds the installed version
-export GOTOOLCHAIN=auto
-
-# Check if we are in bindplane-op-enterprise repo and run make install
+# Runs `make install` when your cwd is inside the bindplane repo AND
+# `make` is available. Currently only callable manually; hook it to
+# `cd` yourself if you want it automatic:
+#   autoload -U add-zsh-hook
+#   add-zsh-hook chpwd install_bindplane
 install_bindplane() {
-	if [[ "$PWD" == *"bindplane-op-enterprise"* ]]; then
+	if [[ "$PWD" == *"bindplane-op-enterprise"* ]] && command -v make >/dev/null 2>&1; then
 		make install
 	fi
 }

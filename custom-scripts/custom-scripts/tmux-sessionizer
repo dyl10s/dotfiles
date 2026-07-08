@@ -1,39 +1,95 @@
 #!/usr/bin/env bash
-cd $HOME
+set -uo pipefail
+# (not using -e: pgrep/fzf/tmux legitimately return non-zero in normal flows)
 
-# Initialize array to store directories
+cd "$HOME" || { echo "Cannot cd to \$HOME" >&2; exit 1; }
+
+# --- Dependency checks ---------------------------------------------------
+for bin in tmux fzf; do
+    if ! command -v "$bin" >/dev/null 2>&1; then
+        echo "Error: '$bin' is not installed or not in PATH." >&2
+        exit 1
+    fi
+done
+
+# --- Helper: does array already contain value? ---------------------------
+contains() {
+    local needle="$1"; shift
+    local item
+    for item in "$@"; do
+        [[ "$item" == "$needle" ]] && return 0
+    done
+    return 1
+}
+
+# --- Helper: expand a leading ~ safely (no eval) --------------------------
+expand_tilde() {
+    local p="$1"
+    if [[ "$p" == "~" ]]; then
+        printf '%s' "$HOME"
+    elif [[ "$p" == "~/"* ]]; then
+        printf '%s' "$HOME/${p#\~/}"
+    else
+        printf '%s' "$p"
+    fi
+}
+
+# --- Build directory list -------------------------------------------------
 directories=("Home" "Background Containers")
 
-# Add additional directories from text file
-if [[ -f ~/custom-scripts/tmux-sessionizer-directories.txt ]]; then
-    while IFS= read -r dir; do
-        directories+=("$dir")
-    done < ~/custom-scripts/tmux-sessionizer-directories.txt
+# Additional dirs from config file, if present
+custom_file="$HOME/custom-scripts/tmux-sessionizer-directories.txt"
+if [[ -f "$custom_file" ]]; then
+    while IFS= read -r dir || [[ -n "$dir" ]]; do
+        # skip blank lines / comments
+        [[ -z "$dir" || "$dir" == \#* ]] && continue
+        dir=$(expand_tilde "$dir")
+        if [[ -d "$dir" ]] && ! contains "$dir" "${directories[@]}"; then
+            directories+=("$dir")
+        fi
+    done < "$custom_file"
 fi
 
-# Add directories found by find command, avoiding duplicates
-while IFS= read -r dir; do
-    if [[ ! " ${directories[@]} " =~ " $dir " ]]; then
-        directories+=("$dir")
-    fi
-done < <(find ~ ~/repos ~/git -mindepth 1 -maxdepth 1 -type d)
+# Dirs found under ~, ~/repos, ~/git — only search ones that actually exist
+search_roots=()
+for root in "$HOME" "$HOME/repos" "$HOME/git"; do
+    [[ -d "$root" ]] && search_roots+=("$root")
+done
 
-# Use fzf to select a directory
+if [[ ${#search_roots[@]} -gt 0 ]]; then
+    while IFS= read -r -d '' dir; do
+        if ! contains "$dir" "${directories[@]}"; then
+            directories+=("$dir")
+        fi
+    done < <(find "${search_roots[@]}" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+fi
+
+# --- Select a directory ---------------------------------------------------
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
+    fzf_color="bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8"
+    fzf_color+=",fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc"
+    fzf_color+=",marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8"
+    fzf_color+=",border:#cba6f7"
+
+    # 'label' color key requires fzf >= 0.35; check the actual version,
+    # since grepping --help text for the word "label" is unreliable
+    # (it can appear in unrelated option descriptions).
+    fzf_ver=$(fzf --version 2>/dev/null | awk '{print $1}')
+    if [[ -n "$fzf_ver" ]] && printf '%s\n%s\n' "0.35" "$fzf_ver" | sort -V | head -n1 | grep -qx "0.35"; then
+        fzf_color+=",label:#cdd6f4"
+    fi
+
     selected=$(printf '%s\n' "${directories[@]}" | sed "s|$HOME|~|" | fzf \
       --prompt="Session ❯ " \
       --pointer="❯" \
       --marker="✓" \
       --height=100% --border=rounded --cycle \
-      --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
-      --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
-      --color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
-      --color=border:#cba6f7,label:#cdd6f4)
+      --color="$fzf_color")
 fi
 
-if [[ -z $selected ]]; then
+if [[ -z "${selected:-}" ]]; then
     exit 0
 fi
 
@@ -45,21 +101,32 @@ case "$selected" in
     "Background Containers")
         selected="$HOME/docker"
         selected_name="Background Containers"
+        # Create it on demand rather than erroring later
+        mkdir -p "$selected" 2>/dev/null
         ;;
     *)
+        selected=$(expand_tilde "$selected")
         selected_name=$(basename "$selected" | tr . _)
         ;;
 esac
-tmux_running=$(pgrep tmux)
-selected=$(eval echo "$selected")
 
-if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+# Final sanity check: never hand tmux a directory that doesn't exist
+if [[ ! -d "$selected" ]]; then
+    echo "Error: '$selected' is not a valid directory." >&2
+    exit 1
+fi
+
+# --- tmux session handling -------------------------------------------------
+tmux_running=$(pgrep -x tmux 2>/dev/null || true)
+
+if [[ -z "${TMUX:-}" ]] && [[ -z "$tmux_running" ]]; then
     tmux new-session -s "$selected_name" -c "$selected"
     exit 0
 fi
 
-if ! tmux has-session -t="$selected_name" 2> /dev/null; then
+if ! tmux has-session -t="$selected_name" 2>/dev/null; then
     tmux new-session -ds "$selected_name" -c "$selected"
 fi
 
 tmux switch-client -t "$selected_name"
+
