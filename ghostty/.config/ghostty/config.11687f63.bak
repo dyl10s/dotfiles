@@ -1,6 +1,6 @@
 font-family = CaskaydiaCove Nerd Font Mono
 theme = Everforest Dark Hard
-font-size = 18
+font-size = 20
 custom-shader = ~/dotfiles/ghostty/.config/ghostty/cursor_smear.glsl
 custom-shader = ~/dotfiles/ghostty/.config/ghostty/background.glsl
 background-image = background.png
@@ -9,7 +9,3 @@ background-image-fit = cover
 background-opacity = 0.99
 background-opacity-cells = true
 background-blur = true
-keybind = shift+enter=text:\x1b\r
-keybind = cmd+ctrl+f=toggle_fullscreen
-macos-titlebar-style = hidden
-macos-non-native-fullscreen = visible-menu

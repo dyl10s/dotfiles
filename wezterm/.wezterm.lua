@@ -10,7 +10,7 @@ local config = wezterm.config_builder()
 config.color_scheme = 'catppuccin-frappe'
 
 -- Set tmux as default
-config.default_prog = { 'tmux' }
+config.default_prog = { '/opt/homebrew/bin/tmux' }
 
 -- Set font
 config.font = wezterm.font 'CaskaydiaCove Nerd Font Mono'
@@ -18,13 +18,13 @@ config.font = wezterm.font 'CaskaydiaCove Nerd Font Mono'
 -- Window looks
 config.enable_tab_bar = false;
 config.window_padding = {
-	left = 3,
+	left = 1,
 	right = 0,
 	top = 0,
 	bottom = 0,
 }
-config.window_background_opacity = 0.95
-config.font_size = 18
+config.window_background_opacity = 1
+config.font_size = 19
 
 -- and finally, return the configuration to wezterm
 return config

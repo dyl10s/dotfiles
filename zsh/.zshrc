@@ -2,11 +2,16 @@
 # zmodload zsh/zprof
 source ~/secrets.sh
 
+# Mr Windows Defender hates nvim logs
+export NVIM_LOG_FILE="/dev/null"
+
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$HOME/custom-scripts:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+
+export REPOS="$HOME/git"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -95,6 +100,7 @@ source $ZSH/oh-my-zsh.sh
 # else
 #   export EDITOR='mvim'
 # fi
+export EDITOR='nvim'
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -115,7 +121,7 @@ then
 fi
 
 # bun completions
-[ -s "/home/dylan/.bun/_bun" ] && source "/home/dylan/.bun/_bun"
+[ -s "$HOME/.bun/shell.zsh" ] && source "$HOME/.bun/shell.zsh"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
@@ -128,9 +134,9 @@ export PATH="$PATH:/usr/local/go/bin:$HOME/go/bin"
 
 
 # fnm aliased as nvm
-FNM_PATH="/home/dylan/.local/share/fnm"
+FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
-  export PATH="/home/dylan/.local/share/fnm:$PATH"
+  export PATH="$HOME/.local/share/fnm:$PATH"
 fi
 
 # fnm for mac
@@ -147,10 +153,10 @@ alias nvm="fnm"
 # zprof
 
 # Turso
-export PATH="/home/dylan/.turso:$PATH"
+export PATH="$HOME/.turso:$PATH"
 
 # Python install dir
-export PATH="/home/dylan/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
 # CUDA
 export PATH="/usr/local/cuda-12.4/targets/x86_64-linux/lib:$PATH"
@@ -203,8 +209,41 @@ fi
 # Kamal Deployment Tool
 alias kamal='docker run -it --rm -v "${PWD}:/workdir" -v "${SSH_AUTH_SOCK}:/ssh-agent" -v /var/run/docker.sock:/var/run/docker.sock -e "SSH_AUTH_SOCK=/ssh-agent" ghcr.io/basecamp/kamal:latest'
 
+# Podman instead of Docker
+alias docker='podman'
+export DOCKER_HOST="unix://$HOME/.local/share/containers/podman/machine/podman.sock"
+# Some issue with testcontainers and podman
+export TESTCONTAINERS_RYUK_DISABLED=true
+
+# Lazy-start podman machine + Background Containers tmux session (backgrounded — does not block shell startup)
+# Add more containers as "Pane Name:command" pairs in the array below. Commands run with cwd = ~/docker.
+{
+    if [[ ! -S "$HOME/.local/share/containers/podman/machine/podman.sock" ]]; then
+        podman machine list --format '{{.Name}}' | grep -q . || podman machine init
+        podman machine start
+    fi
+    if ! tmux has-session -t="Background Containers" 2>/dev/null; then
+        bg_containers=(
+            "Postgres:./postgres.sh"
+            "Redis:./redis.sh"
+        )
+        first=1
+        for entry in "${bg_containers[@]}"; do
+            name="${entry%%:*}"
+            cmd="${entry#*:}"
+            if (( first )); then
+                tmux new-session -ds "Background Containers" -n "$name" -c "$HOME/docker"
+                first=0
+            else
+                tmux new-window -t "Background Containers" -n "$name" -c "$HOME/docker"
+            fi
+            tmux send-keys -t "Background Containers:$name" "$cmd" Enter
+        done
+    fi
+} >/dev/null 2>&1 &!
+
 # TSGO
-export PATH="$PATH:/home/dylan/repos/typescript-go/built/local"
+export PATH="$PATH:$REPOS/typescript-go/built/local"
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"; fi
@@ -217,18 +256,29 @@ if [ -d "/opt/homebrew/opt/openjdk/bin" ]; then
   export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 fi
 
-# bindplane
-b() {
-  bindplane "$@"
-}
-compdef _bindplane bindplane
-compdef _b b
+export BP_DEV_HOME=$REPOS/bindplane-op-enterprise
+source "$BP_DEV_HOME/dev/aliases"
 
 export BP_DEV_HOME=$HOME/repos/bindplane-op-enterprise
 
-# Completions are handled by oh-my-zsh
+fpath=(~/.zsh_completions $HOME/.zsh_completions $HOME/.oh-my-zsh/plugins/git $HOME/.oh-my-zsh/functions $HOME/.oh-my-zsh/completions $HOME/.oh-my-zsh/custom/functions $HOME/.oh-my-zsh/custom/completions $HOME/.oh-my-zsh/cache/completions /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions)
+autoload -Uz compinit
+compinit -u
 
 # opencode
 export PATH=$HOME/.opencode/bin:$PATH
 
 [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+
+# Splunk
+export SPLUNK_HOME=/Applications/SplunkForwarder
+
+# Go: auto-download the toolchain pinned in go.mod when it exceeds the installed version
+export GOTOOLCHAIN=auto
+
+# Check if we are in bindplane-op-enterprise repo and run make install
+install_bindplane() {
+	if [[ "$PWD" == *"bindplane-op-enterprise"* ]]; then
+		make install
+	fi
+}

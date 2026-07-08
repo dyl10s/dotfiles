@@ -1,15 +1,20 @@
 return {
 	"epwalsh/obsidian.nvim",
 	version = "*", -- recommended, use latest release instead of latest commit
-	event = "VeryLazy",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 	},
+	keys = {
+		{ "<leader>Od", "<cmd>ObsidianToday<CR>", desc = "Open daily obsidian note" },
+		{ "<leader>Oy", "<cmd>ObsidianYesterday<CR>", desc = "Open yesterday's obsidian note" },
+		{ "<leader>Os", "<cmd>ObsidianSearch<CR>", desc = "Search obsidian notes" },
+	},
+	cmd = { "ObsidianToday", "ObsidianYesterday", "ObsidianSearch", "ObsidianNew", "ObsidianOpen" },
+	ft = "markdown",
 	config = function()
 		local home = os.getenv("HOME")
 		local path = home .. "/Documents/Notes"
 
-		-- Function to check if a path exists
 		local function path_exists(p)
 			local f = io.open(p, "r")
 			if f then
@@ -19,7 +24,6 @@ return {
 			return false
 		end
 
-		-- Create the directory if it doesn't exist
 		if not path_exists(path) then
 			os.execute("mkdir -p " .. path)
 		end
@@ -47,9 +51,5 @@ return {
 				}
 			}
 		})
-
-		vim.keymap.set("n", "<leader>Od", [[:ObsidianToday<CR>]], { desc = "Open daily obsidian note" })
-		vim.keymap.set("n", "<leader>Oy", [[:ObsidianYesterday<CR>]], { desc = "Open yesterday's obsidian note" })
-		vim.keymap.set("n", "<leader>Os", [[:ObsidianSearch<CR>]], { desc = "Search obsidian notes" })
 	end
 }

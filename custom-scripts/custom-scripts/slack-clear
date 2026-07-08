@@ -1,0 +1,18 @@
+#!/bin/bash
+# Mark all Slack messages as read (Shift+Esc), then restore focus to the
+# previously frontmost app so the tmux badge clears without stealing focus.
+
+front=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)
+
+osascript >/dev/null 2>&1 <<'EOF'
+tell application "Slack" to activate
+delay 0.15
+tell application "System Events" to key code 53 using {shift down}
+EOF
+
+if [ -n "$front" ] && [ "$front" != "Slack" ]; then
+  osascript -e "tell application \"$front\" to activate" >/dev/null 2>&1
+fi
+
+# Drop the cache so slack-unread re-reads the (now cleared) badge on next tick.
+rm -f /tmp/slack-unread.cache

@@ -1,12 +1,16 @@
 prSections:
-  - title: Needs My Review
-    filters: is:open -label:"⚠️ Changes requested" -label:"🔒 Merge Conflicts" -label:"✅ Approved" -label:"🙅 Blocked" -label:"🚧 WIP" -status:failure  user-review-requested:@me draft:false 
+  - title: PRs To Review
+    filters: is:open draft:false user-review-requested:@me -review:changes-requested
     type: null
-  - title: My Pull Requests (Changes Requested)
-    filters: is:open author:@me review:changes-requested
+  - title: OTEL PRs
+    filters: is:pr is:open repo:open-telemetry/opentelemetry-collector-contrib label:receiver/azureeventhub,receiver/mongodb,receiver/mongodbatlas,receiver/azureblob,receiver/awscloudwatch
     type: null
-  - title: My Pull Requests
+  - title: My PRs
     filters: is:open author:@me
+    type: null
+issuesSections:
+  - title: OTEL Issues
+    filters: is:issue is:open repo:open-telemetry/opentelemetry-collector-contrib label:receiver/azureeventhub,receiver/mongodb,receiver/mongodbatlas,receiver/azureblob,receiver/awscloudwatch
     type: null
 defaults:
   preview:
@@ -58,3 +62,4 @@ theme:
 pager:
   diff: ""
 confirmQuit: false
+smartFilteringAtLaunch: false

@@ -11,6 +11,7 @@ return {
 	{
 		"williamboman/mason.nvim",
 		tag = "v1.11.0",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			{
 				"williamboman/mason-lspconfig.nvim",
@@ -18,13 +19,12 @@ return {
 			},
 			"neovim/nvim-lspconfig",
 			"nvim-lua/plenary.nvim",
-			"neovim/nvim-lspconfig",
-			"yioneko/nvim-vtsls"
+			"yioneko/nvim-vtsls",
+			"saghen/blink.cmp",
 		},
 		config = function()
 			require("mason").setup()
 			require("mason-lspconfig").setup()
-			local telescope = require("telescope.builtin")
 
 			-- Set up lspconfig.
 			local capabilities = require('blink.cmp').get_lsp_capabilities()
@@ -40,6 +40,17 @@ return {
 						capabilities = capabilities,
 					}
 					vim.lsp.enable(server_name)
+				end,
+				["gopls"] = function()
+					vim.lsp.config.gopls = {
+						capabilities = capabilities,
+						settings = {
+							gopls = {
+								buildFlags = { "-tags=janitor,evals" },
+							},
+						},
+					}
+					vim.lsp.enable("gopls")
 				end,
 				["html"] = function()
 					vim.lsp.config.html = {
@@ -193,7 +204,7 @@ return {
 										maxTsServerMemory = 8192
 									},
 									preferences = {
-										importModuleSpecifier = "project-relative"
+										importModuleSpecifier = "non-relative"
 									},
 									suggest = {
 										completeFunctionCalls = false
@@ -209,29 +220,27 @@ return {
 
 						local lsp_vtsls_augroup = vim.api.nvim_create_augroup("lsp-vtsls", { clear = true })
 
-						local vtsls = require("vtsls");
+						local vtsls = require("vtsls")
+						local adding_imports = false
 
-						vim.api.nvim_create_autocmd("BufWritePre", {
+						vim.api.nvim_create_autocmd("BufWritePost", {
 							group = lsp_vtsls_augroup,
 							pattern = "*.ts",
 							callback = function()
-								local isDone = false;
+								if adding_imports then return end
+								adding_imports = true
 
 								vtsls.commands["add_missing_imports"](0, function()
-									vtsls.commands["organize_imports"](0, function()
-										isDone = true;
-									end)
-								end)
-
-								vim.wait(500, function()
-									return isDone;
+									if vim.bo.modified then
+										vim.cmd("silent write")
+									end
+									adding_imports = false
 								end)
 							end,
 						})
 					end
 				end
 			}
-
 
 			-- Global mappings.
 			-- See `:help vim.diagnostic.*` for documentation on any of the below functions
@@ -265,7 +274,8 @@ return {
 					createBufferBind('n', 'gd', vim.lsp.buf.definition, "Goto definition")
 					createBufferBind('n', 'K', vim.lsp.buf.hover, "Code hover")
 					createBufferBind('n', '<leader>cr', vim.lsp.buf.rename, "Rename")
-					createBufferBind('n', 'gr', telescope.lsp_references, "Goto references")
+					createBufferBind('n', 'gr', function() require("telescope.builtin").lsp_references() end,
+						"Goto references")
 					createBufferBind('n', 'gi', vim.lsp.buf.implementation, "Goto implementation")
 					createBufferBind('n', '<leader>D', vim.lsp.buf.type_definition, "Type definition")
 					createBufferBind('n', '<leader>ca', vim.lsp.buf.code_action, "Code action")
@@ -273,6 +283,20 @@ return {
 					createBufferBind('n', '<leader>f', function()
 						vim.lsp.buf.format { async = true }
 					end, "Format")
+				end,
+			})
+
+			-- Restart LSP when git branch changes
+			local last_git_head = vim.fn.system("git rev-parse HEAD 2>/dev/null"):gsub("\n", "")
+			vim.api.nvim_create_autocmd("FocusGained", {
+				group = userLspAuGroup,
+				callback = function()
+					local git_head = vim.fn.system("git rev-parse HEAD 2>/dev/null"):gsub("\n", "")
+					if last_git_head and git_head ~= last_git_head then
+						vim.cmd("silent! LspRestart")
+						vim.notify("lsp restarted branch change", vim.log.levels.INFO)
+					end
+					last_git_head = git_head
 				end,
 			})
 		end

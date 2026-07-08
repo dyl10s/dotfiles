@@ -1,0 +1,49 @@
+#!/bin/bash
+# Triggered by the com.local.ScreenshotStyle LaunchAgent whenever the macOS
+# screenshot directory changes. Runs Bindplane's apply-image-presets.sh on any
+# new screenshot and copies the styled result (bpss_*.png) to the clipboard.
+#
+# Override the preset script location with BPSS_SCRIPT if the repo moves.
+
+PRESET_SCRIPT="${BPSS_SCRIPT:-$HOME/git/bindplane-op-enterprise/scripts/apply-image-presets.sh}"
+
+# launchd runs with a minimal PATH; magick lives in homebrew
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+# Resolve the screenshot save location (falls back to the macOS default)
+SHOT_DIR=$(defaults read com.apple.screencapture location 2>/dev/null || echo "$HOME/Desktop")
+SHOT_DIR="${SHOT_DIR/#\~/$HOME}"
+SHOT_DIR="${SHOT_DIR%/}"
+
+if [ ! -x "$PRESET_SCRIPT" ]; then
+  echo "screenshot-style: preset script not found at $PRESET_SCRIPT" >&2
+  exit 0
+fi
+
+# Give screencapture a moment to finish writing the file
+sleep 1
+
+# Only consider screenshots from the last 2 minutes that haven't been styled
+# yet, so old screenshots and our own bpss_ output don't retrigger work.
+newest_styled=""
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  base=$(basename "$f")
+  styled="$SHOT_DIR/bpss_$base"
+  [ -e "$styled" ] && continue
+  echo "screenshot-style: processing $base"
+  osascript -e "display notification \"$base\" with title \"Processing screenshot\"" 2>/dev/null
+  "$PRESET_SCRIPT" "$f" || continue
+  [ -f "$styled" ] && newest_styled="$styled"
+done < <(find "$SHOT_DIR" -maxdepth 1 -name 'Screenshot*.png' ! -name 'bpss_*' -mtime -2m | sort)
+
+[ -z "$newest_styled" ] && exit 0
+
+# pbcopy can't take images — use AppleScript to put the PNG on the clipboard
+if osascript -e "set the clipboard to (read (POSIX file \"$newest_styled\") as «class PNGf»)"; then
+  osascript -e "display notification \"$(basename "$newest_styled") copied to clipboard\" with title \"Processing complete\"" 2>/dev/null
+  echo "screenshot-style: copied $newest_styled to clipboard"
+else
+  echo "screenshot-style: failed to copy $newest_styled to clipboard" >&2
+  exit 1
+fi

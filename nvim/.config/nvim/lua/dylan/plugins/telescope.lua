@@ -1,7 +1,6 @@
 return {
 	{
 		'nvim-telescope/telescope.nvim',
-		tag = '0.1.5',
 		dependencies = {
 			'nvim-lua/plenary.nvim',
 			{
@@ -9,6 +8,15 @@ return {
 				build = "make"
 			},
 			'nvim-telescope/telescope-ui-select.nvim'
+		},
+		cmd = "Telescope",
+		keys = {
+			{ "<leader><leader>", function() require("telescope.builtin").find_files({ path_display = { truncate = 3 } }) end, desc = "Find files" },
+			{ "<leader>sg", function() require("telescope.builtin").live_grep() end, desc = "[S]earch [G]rep" },
+			{ "<leader>gb", "<cmd>Telescope git_branches<CR>", desc = "Switch Branch" },
+			{ "<leader>sw", function() require("telescope.builtin").grep_string() end, desc = "[S]earch For Current [W]ord" },
+			{ "<leader>sr", function() require("telescope.builtin").resume() end, desc = "[S]earch [R]esume" },
+			{ "<leader>sh", function() require("telescope.builtin").help_tags() end, desc = "[S]earch [H]elp" },
 		},
 		config = function()
 			local actions = require('telescope.actions')
@@ -25,26 +33,6 @@ return {
 
 			require("telescope").load_extension("fzf")
 			require("telescope").load_extension("ui-select")
-
-			local telescope = require("telescope.builtin")
-
-			vim.keymap.set("n", "<leader><leader>",
-				function()
-					telescope.find_files({
-						path_display = { truncate = 3 }
-					})
-				end,
-				{
-					desc = "Find files"
-				}
-			)
-
-			vim.keymap.set("n", "<leader>sg", telescope.live_grep, { desc = "[S]earch [G]rep" })
-			vim.api.nvim_set_keymap('n', '<Leader>gb', [[:Telescope git_branches<CR>]],
-				{ noremap = true, silent = true, desc = "Switch Branch" })
-			vim.keymap.set("n", "<leader>sw", telescope.grep_string, { desc = "[S]earch For Current [W]ord" })
-			vim.keymap.set("n", "<leader>sr", telescope.resume, { desc = "[S]earch [R]esume" })
-			vim.keymap.set("n", "<leader>sh", telescope.help_tags, { desc = "[S]earch [H]elp" })
 		end
 	}
 }

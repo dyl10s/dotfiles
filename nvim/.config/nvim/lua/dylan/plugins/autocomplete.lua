@@ -1,10 +1,8 @@
 return {
 	{
 		'saghen/blink.cmp',
-		dependencies = {
-			'Kaiser-Yang/blink-cmp-avante'
-		},
 		version = '*',
+		event = { "InsertEnter", "CmdlineEnter" },
 
 		opts = {
 			keymap = { preset = 'default' },
@@ -28,20 +26,11 @@ return {
 					}
 				},
 				documentation = { auto_show = true, auto_show_delay_ms = 500 },
-				ghost_text = { enabled = true },
+				ghost_text = { enabled = false },
 			},
 
 			sources = {
-				default = { 'avante', 'lsp', 'path', 'snippets', 'buffer' },
-				providers = {
-					avante = {
-						module = 'blink-cmp-avante',
-						name = 'Avante',
-						opts = {
-							-- options for blink-cmp-avante
-						}
-					}
-				},
+				default = { 'lsp', 'path', 'snippets', 'buffer' },
 			},
 		},
 		opts_extend = { "sources.default" }

@@ -1,0 +1,15 @@
+#!/bin/bash
+# tmux control panel: an fzf menu of quick actions.
+# Add a new action by adding a line to OPTIONS and a matching case branch.
+
+OPTIONS="Slack - Mark All Read"
+
+selection=$(printf '%s\n' "$OPTIONS" | fzf \
+  --prompt="Control Panel > " \
+  --height=100% --reverse --border --cycle)
+
+case "$selection" in
+  "Slack - Mark All Read")
+    ~/custom-scripts/slack-clear
+    ;;
+esac

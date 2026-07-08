@@ -1,8 +1,6 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
-vim.o.hlsearch = false
-
 vim.wo.number = true
 
 vim.o.mouse = 'a'
@@ -37,3 +35,6 @@ vim.opt.hlsearch = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 vim.opt.swapfile = false
+
+-- Mac windows defender gets a little upset scanning this file all the time
+vim.lsp.log.set_level("ERROR")

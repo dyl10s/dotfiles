@@ -1,0 +1,34 @@
+#!/bin/bash
+
+LEFT_CAP=$'\xee\x82\xb6'
+RIGHT_CAP=$'\xee\x82\xb4'
+CACHE=/tmp/slack-unread.cache
+NOW=$(date +%s)
+
+if [ ! -f "$CACHE" ] || [ $((NOW - $(stat -f %m "$CACHE"))) -ge 5 ]; then
+  osascript -e 'tell application "System Events" to tell process "Dock" to get value of attribute "AXStatusLabel" of UI element "Slack" of list 1' 2>/dev/null > "$CACHE"
+fi
+badge=$(cat "$CACHE")
+
+case "$badge" in
+  ""|"missing value")
+    exit 0
+    ;;
+  "•")
+    accent="#a6e3a1"
+    text_bg="#313244"
+    label="•"
+    ;;
+  *)
+    accent="#f38ba8"
+    label="$badge"
+    if [ $((NOW % 2)) -eq 0 ]; then
+      text_bg="#f38ba8"
+    else
+      text_bg="#313244"
+    fi
+    ;;
+esac
+
+printf '#[fg=%s,bg=#1e1e2e,nobold,nounderscore,noitalics]%s#[fg=#1e1e2e,bg=%s,nobold,nounderscore,noitalics] 󰒱 #[fg=#cdd6f4,bg=%s] %s #[fg=%s,bg=#1e1e2e,nobold,nounderscore,noitalics]%s' \
+  "$accent" "$LEFT_CAP" "$accent" "$text_bg" "$label" "$text_bg" "$RIGHT_CAP"

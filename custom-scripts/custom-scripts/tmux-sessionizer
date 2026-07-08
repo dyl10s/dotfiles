@@ -2,7 +2,7 @@
 cd $HOME
 
 # Initialize array to store directories
-directories=()
+directories=("Home" "Background Containers")
 
 # Add additional directories from text file
 if [[ -f ~/custom-scripts/tmux-sessionizer-directories.txt ]]; then
@@ -16,30 +16,50 @@ while IFS= read -r dir; do
     if [[ ! " ${directories[@]} " =~ " $dir " ]]; then
         directories+=("$dir")
     fi
-done < <(find ~ ~/repos -mindepth 1 -maxdepth 1 -type d)
+done < <(find ~ ~/repos ~/git -mindepth 1 -maxdepth 1 -type d)
 
 # Use fzf to select a directory
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    selected=$(printf '%s\n' "${directories[@]}" | fzf)
+    selected=$(printf '%s\n' "${directories[@]}" | sed "s|$HOME|~|" | fzf \
+      --prompt="Session ❯ " \
+      --pointer="❯" \
+      --marker="✓" \
+      --height=100% --border=rounded --cycle \
+      --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
+      --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
+      --color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
+      --color=border:#cba6f7,label:#cdd6f4)
 fi
 
 if [[ -z $selected ]]; then
     exit 0
 fi
 
-selected_name=$(basename "$selected" | tr . _)
+case "$selected" in
+    "Home")
+        selected="$HOME"
+        selected_name="Home"
+        ;;
+    "Background Containers")
+        selected="$HOME/docker"
+        selected_name="Background Containers"
+        ;;
+    *)
+        selected_name=$(basename "$selected" | tr . _)
+        ;;
+esac
 tmux_running=$(pgrep tmux)
 selected=$(eval echo "$selected")
 
 if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
-    tmux new-session -s $selected_name -c "$selected"
+    tmux new-session -s "$selected_name" -c "$selected"
     exit 0
 fi
 
-if ! tmux has-session -t=$selected_name 2> /dev/null; then
-    tmux new-session -ds $selected_name -c "$selected"
+if ! tmux has-session -t="$selected_name" 2> /dev/null; then
+    tmux new-session -ds "$selected_name" -c "$selected"
 fi
 
-tmux switch-client -t $selected_name
+tmux switch-client -t "$selected_name"
