@@ -10,6 +10,7 @@ return {
 		local tree = require("neo-tree")
 
 		tree.setup({
+			log_level = "warn",
 			filesystem = {
 				follow_current_file = {
 					enabled = true

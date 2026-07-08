@@ -76,16 +76,28 @@ wait "$FS_PID" 2>/dev/null || true
 # token on the line) and the trailing process token.
 
 extract() {
-  # $1 = process filter regex (matched against trailing process.pid token)
+  # $1 = process filter regex (matched against trailing process.pid token).
+  # fs_usage tokenizes on whitespace, so paths containing spaces (e.g.
+  # "Application Support") split across multiple awk fields. We reassemble
+  # by taking everything from the first /-prefixed token up to (but not
+  # including) the duration field (matches /^[0-9]+\.[0-9]{6}$/) that
+  # precedes the trailing "W process.pid" tail.
   awk -v re="$1" '
     {
       proc = $NF
-      if (proc ~ re) {
-        # find the first token that looks like an absolute path
-        for (i = 1; i <= NF; i++) {
-          if ($i ~ /^\//) { print $i; break }
-        }
+      if (proc !~ re) next
+      start = 0
+      for (i = 1; i <= NF; i++) {
+        if ($i ~ /^\//) { start = i; break }
       }
+      if (start == 0) next
+      end = NF - 1
+      for (j = start; j <= NF; j++) {
+        if ($j ~ /^[0-9]+\.[0-9]{6}$/) { end = j - 1; break }
+      }
+      path = $start
+      for (k = start + 1; k <= end; k++) path = path " " $k
+      print path
     }
   ' "$RAW" | sort | uniq -c | sort -rn | head -15
 }
@@ -100,9 +112,18 @@ echo "==========================================================="
 echo " TOP PATHS overall (any process)"
 echo "==========================================================="
 awk '{
+  start = 0
   for (i = 1; i <= NF; i++) {
-    if ($i ~ /^\//) { print $i; break }
+    if ($i ~ /^\//) { start = i; break }
   }
+  if (start == 0) next
+  end = NF - 1
+  for (j = start; j <= NF; j++) {
+    if ($j ~ /^[0-9]+\.[0-9]{6}$/) { end = j - 1; break }
+  }
+  path = $start
+  for (k = start + 1; k <= end; k++) path = path " " $k
+  print path
 }' "$RAW" | sort | uniq -c | sort -rn | head -20
 echo
 

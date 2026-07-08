@@ -10,6 +10,9 @@ vim.o.clipboard = 'unnamedplus'
 vim.o.breakindent = true
 
 vim.o.undofile = true
+-- Defender hammers nvim state files; ~/git is excluded, so redirect there.
+vim.o.undodir = vim.fn.expand('~/git/nvim-state/undo')
+vim.o.shadafile = vim.fn.expand('~/git/nvim-state/shada/main.shada')
 vim.o.autoindent = true
 
 vim.o.ignorecase = true
