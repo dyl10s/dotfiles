@@ -35,7 +35,7 @@ expand_tilde() {
 }
 
 # --- Build directory list -------------------------------------------------
-directories=("Home" "Background Containers")
+directories=("Home" "Background Containers" "Spotify")
 
 # Additional dirs from config file, if present
 custom_file="$HOME/custom-scripts/tmux-sessionizer-directories.txt"
@@ -101,8 +101,11 @@ case "$selected" in
     "Background Containers")
         selected="$HOME/docker"
         selected_name="Background Containers"
-        # Create it on demand rather than erroring later
         mkdir -p "$selected" 2>/dev/null
+        ;;
+    "Spotify")
+        selected="$HOME"
+        selected_name="Spotify"
         ;;
     *)
         selected=$(expand_tilde "$selected")

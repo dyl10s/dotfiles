@@ -200,9 +200,21 @@ if command -v podman >/dev/null 2>&1 && command -v tmux >/dev/null 2>&1 && [ -d 
 fi
 
 # ============================================================
+# Auto-start spotify_player tmux session
+# ============================================================
+if command -v tmux >/dev/null 2>&1 && command -v spotify_player >/dev/null 2>&1; then
+{
+    if ! tmux has-session -t="Spotify" 2>/dev/null; then
+        tmux new-session -ds "Spotify" -c "$HOME"
+        tmux send-keys -t "Spotify" "spotify_player" Enter
+    fi
+} >/dev/null 2>&1 &!
+fi
+
+# ============================================================
 # bindplane-op-enterprise (fully optional — no-op if repo isn't present)
 # ============================================================
-export BP_DEV_HOME="$HOME/repos/bindplane-op-enterprise"
+export BP_DEV_HOME="$HOME/git/bindplane-op-enterprise"
 
 [ -f "$BP_DEV_HOME/dev/aliases" ] && source "$BP_DEV_HOME/dev/aliases"
 

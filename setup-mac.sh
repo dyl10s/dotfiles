@@ -22,6 +22,7 @@ brew install podman
 brew install withgraphite/tap/graphite
 brew install --cask zoom
 brew install --cask linear
+brew install spotify_player
 
 # Set default shell
 chsh -s "$(which zsh)"
