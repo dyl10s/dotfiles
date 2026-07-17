@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CACHE_DIR="$HOME/.cache/spotify-player"
+PLAYBACK_FILE="$CACHE_DIR/playback.json"
+
+if [[ -f "$PLAYBACK_FILE" ]] && (( $(date +%s) - $(stat -f %m "$PLAYBACK_FILE") < 2 )); then
+  data=$(<"$PLAYBACK_FILE")
+else
+  data=$(spotify_player get key playback 2>/dev/null || true)
+  if [[ -n "$data" ]]; then
+    mkdir -p "$CACHE_DIR" 2>/dev/null
+    echo "$data" > "$PLAYBACK_FILE" 2>/dev/null || true
+  fi
+fi
+
+[[ -z "$data" ]] && exit 0
+
+is_playing=$(echo "$data" | jq -r '.is_playing // false')
+[[ "$is_playing" != "true" ]] && exit 0
+
+track=$(echo "$data" | jq -r '.item.name // ""')
+artist=$(echo "$data" | jq -r '.item.artists[0].name // ""')
+
+if [[ ${#track} -gt 20 ]]; then
+  track="${track:0:18}…"
+fi
+
+LEFT_CAP=$'\xee\x82\xb6'
+RIGHT_CAP=$'\xee\x82\xb4'
+ACCENT="#1db954"
+TEXT_BG="#313244"
+
+printf ' #[fg=%s,bg=#1e1e2e,nobold,nounderscore,noitalics]%s#[fg=#1e1e2e,bg=%s,nobold,nounderscore,noitalics] #[fg=#cdd6f4,bg=%s] %s — %s #[fg=%s,bg=#1e1e2e,nobold,nounderscore,noitalics]%s' \
+  "$ACCENT" "$LEFT_CAP" "$ACCENT" "$TEXT_BG" "$artist" "$track" "$TEXT_BG" "$RIGHT_CAP"
