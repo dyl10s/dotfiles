@@ -15,12 +15,13 @@ return {
 			vim.filetype.add({
 				pattern = {
 					[".*%.component%.html"] = "htmlangular",
+					[".*/bindplane%-op%-enterprise/resources/.*%.yaml"] = "helm",
 				},
 			})
 
 			require("nvim-treesitter").install({
 				"bash", "csv", "dockerfile", "dtd", "git_rebase", "gitcommit", "gitignore",
-				"go", "gomod", "gosum", "gowork", "graphql", "html", "javascript", "jinja",
+				"go", "gomod", "gosum", "gowork", "gotmpl", "graphql", "helm", "html", "javascript", "jinja",
 				"jinja_inline", "json", "lua", "make", "pem", "sql", "toml", "tsv", "tsx",
 				"typescript", "xml", "yaml", "zsh",
 			})

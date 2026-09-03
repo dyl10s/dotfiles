@@ -1,0 +1,184 @@
+#!/bin/bash
+
+source ~/secrets.sh 2>/dev/null
+[ -z "$OUTLOOK_CALENDAR_ICS_URL" ] && exit 0
+
+LEFT_CAP=$'\xee\x82\xb6'
+RIGHT_CAP=$'\xee\x82\xb4'
+ICS=/tmp/next-event.ics
+CACHE=/tmp/next-event.cache
+NOW=$(date +%s)
+
+if [ ! -f "$ICS" ] || [ $((NOW - $(stat -f %m "$ICS"))) -ge 300 ]; then
+  curl -sf --max-time 10 "$OUTLOOK_CALENDAR_ICS_URL" -o "$ICS.tmp" && mv "$ICS.tmp" "$ICS"
+fi
+[ -f "$ICS" ] || exit 0
+
+if [ ! -f "$CACHE" ] || [ $((NOW - $(stat -f %m "$CACHE"))) -ge 30 ] || [ "$ICS" -nt "$CACHE" ]; then
+  python3 - "$ICS" <<'PY' > "$CACHE" 2>/dev/null
+import sys, datetime as dt
+from zoneinfo import ZoneInfo
+
+WINTZ = {
+    "Eastern Standard Time": "America/New_York",
+    "Pacific Standard Time": "America/Los_Angeles",
+    "Central Standard Time": "America/Chicago",
+    "Mountain Standard Time": "America/Denver",
+    "W. Europe Standard Time": "Europe/Berlin",
+    "GMT Standard Time": "Europe/London",
+    "UTC": "UTC",
+}
+LOCAL = dt.datetime.now().astimezone().tzinfo
+DAYS = {"MO": 0, "TU": 1, "WE": 2, "TH": 3, "FR": 4, "SA": 5, "SU": 6}
+
+def unfold(path):
+    out = []
+    for line in open(path, encoding="utf-8", errors="replace"):
+        line = line.rstrip("\r\n")
+        if line[:1] in (" ", "\t") and out:
+            out[-1] += line[1:]
+        else:
+            out.append(line)
+    return out
+
+def parse_dt(value, params):
+    if params.get("VALUE") == "DATE" or len(value) == 8:
+        return None
+    v = value.rstrip("Z")
+    t = dt.datetime.strptime(v, "%Y%m%dT%H%M%S")
+    if value.endswith("Z"):
+        return t.replace(tzinfo=dt.timezone.utc)
+    tzid = params.get("TZID")
+    if tzid:
+        try:
+            return t.replace(tzinfo=ZoneInfo(WINTZ.get(tzid, tzid)))
+        except Exception:
+            pass
+    return t.replace(tzinfo=LOCAL)
+
+events = []
+cur = None
+for line in unfold(sys.argv[1]):
+    if line == "BEGIN:VEVENT":
+        cur = {"exdates": []}
+    elif line == "END:VEVENT" and cur is not None:
+        events.append(cur)
+        cur = None
+    elif cur is not None and ":" in line:
+        head, _, value = line.partition(":")
+        name, *rawp = head.split(";")
+        params = dict(p.split("=", 1) for p in rawp if "=" in p)
+        if name == "DTSTART":
+            cur["start"] = parse_dt(value, params)
+        elif name == "SUMMARY":
+            cur["summary"] = value.replace("\\,", ",").replace("\\;", ";")
+        elif name == "RRULE":
+            cur["rrule"] = dict(p.split("=", 1) for p in value.split(";") if "=" in p)
+        elif name == "EXDATE":
+            cur["exdates"] += [parse_dt(v, params) for v in value.split(",")]
+        elif name == "RECURRENCE-ID":
+            cur["recid"] = parse_dt(value, params)
+        elif name == "STATUS":
+            cur["status"] = value
+        elif name == "X-MICROSOFT-CDO-BUSYSTATUS":
+            cur["busy"] = value
+
+now = dt.datetime.now(dt.timezone.utc)
+horizon = dt.datetime.combine(dt.datetime.now(LOCAL).date(), dt.time.max, tzinfo=LOCAL)
+
+overrides = {}
+for e in events:
+    if e.get("recid"):
+        overrides.setdefault(e.get("summary", ""), set()).add(e["recid"].timestamp())
+
+def week_start(d, wkst):
+    return d - dt.timedelta(days=(d.weekday() - DAYS.get(wkst, 0)) % 7)
+
+def expand(e):
+    start, rule = e["start"], e["rrule"]
+    freq = rule.get("FREQ")
+    interval = int(rule.get("INTERVAL", 1))
+    until = None
+    if "UNTIL" in rule:
+        until = parse_dt(rule["UNTIL"], {})
+    skip = {x.timestamp() for x in e["exdates"] if x}
+    skip |= overrides.get(e.get("summary", ""), set())
+    tz = start.tzinfo
+    day = now.astimezone(tz).date() - dt.timedelta(days=1)
+    while day <= horizon.astimezone(tz).date():
+        day += dt.timedelta(days=1)
+        occ = dt.datetime.combine(day, start.timetz())
+        if occ < start or (until and occ > until) or occ.timestamp() in skip:
+            continue
+        if freq == "WEEKLY":
+            byday = rule.get("BYDAY", "").split(",") if rule.get("BYDAY") else [list(DAYS)[start.weekday()]]
+            if list(DAYS)[day.weekday()] not in byday:
+                continue
+            wkst = rule.get("WKST", "MO")
+            weeks = (week_start(day, wkst) - week_start(start.date(), wkst)).days // 7
+            if weeks % interval:
+                continue
+        elif freq == "MONTHLY":
+            months = (day.year - start.year) * 12 + day.month - start.month
+            if months % interval:
+                continue
+            if "BYMONTHDAY" in rule:
+                if day.day != int(rule["BYMONTHDAY"]):
+                    continue
+            elif "BYDAY" in rule:
+                spec = rule["BYDAY"]
+                n, code = int(spec[:-2]), spec[-2:]
+                if day.weekday() != DAYS[code]:
+                    continue
+                nth = (day.day - 1) // 7 + 1
+                from_end = -((_days_in_month(day) - day.day) // 7 + 1)
+                if n not in (nth, from_end):
+                    continue
+            elif day.day != start.day:
+                continue
+        else:
+            return
+        yield occ
+
+def _days_in_month(d):
+    nxt = d.replace(day=28) + dt.timedelta(days=4)
+    return (nxt - dt.timedelta(days=nxt.day)).day
+
+candidates = []
+for e in events:
+    if not e.get("start") or e.get("status") == "CANCELLED" or e.get("busy") == "FREE":
+        continue
+    if "rrule" in e:
+        occs = expand(e)
+    else:
+        occs = [e["start"]]
+    for occ in occs:
+        if now <= occ <= horizon:
+            candidates.append((occ, e.get("summary", "busy")))
+
+if candidates:
+    occ, summary = min(candidates)
+    local = occ.astimezone(LOCAL)
+    print(f"{int(occ.timestamp())}\t{local.strftime('%H:%M')}\t{summary[:28]}")
+PY
+fi
+
+line=$(cat "$CACHE" 2>/dev/null)
+[ -z "$line" ] && exit 0
+IFS=$'\t' read -r epoch when summary <<< "$line"
+
+accent="#89b4fa"
+text_bg="#313244"
+text_fg="#cdd6f4"
+if [ $((epoch - NOW)) -le 60 ]; then
+  if [ $((NOW % 2)) -eq 0 ]; then
+    accent="#f38ba8" text_bg="#f38ba8" text_fg="#1e1e2e"
+  else
+    accent="#cdd6f4" text_bg="#cdd6f4" text_fg="#f38ba8"
+  fi
+elif [ $((epoch - NOW)) -le 600 ]; then
+  accent="#fab387"
+fi
+
+printf '#[fg=%s,bg=#1e1e2e,nobold,nounderscore,noitalics]%s#[fg=#1e1e2e,bg=%s,nobold,nounderscore,noitalics] 󰃭 #[fg=%s,bg=%s] %s %s #[fg=%s,bg=#1e1e2e,nobold,nounderscore,noitalics]%s' \
+  "$accent" "$LEFT_CAP" "$accent" "$text_fg" "$text_bg" "$when" "$summary" "$text_bg" "$RIGHT_CAP"

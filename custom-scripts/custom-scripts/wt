@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+for bin in git fzf; do
+    command -v "$bin" >/dev/null 2>&1 || { echo "Error: '$bin' not in PATH." >&2; exit 1; }
+done
+
+git rev-parse --git-dir >/dev/null 2>&1 || { echo "Error: not in a git repo." >&2; exit 1; }
+
+root=$(git worktree list --porcelain | awk '/^worktree /{print substr($0,10); exit}')
+
+fzf_color="bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8"
+fzf_color+=",fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc"
+fzf_color+=",marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8"
+fzf_color+=",border:#cba6f7,label:#cdd6f4"
+
+fzf_styled() {
+    fzf --prompt="$1 ❯ " \
+      --pointer="❯" \
+      --marker="✓" \
+      --height=100% --border=rounded --cycle \
+      --color="$fzf_color"
+}
+
+list_worktrees() {
+    git worktree list --porcelain | awk '/^worktree /{print substr($0,10)}'
+}
+
+pick_worktree() {
+    list_worktrees | grep -vxF "${2:-}" | sed "s|^$HOME|~|" | fzf_styled "${1:-Worktree}"
+}
+
+# ponytail: matches by session start path, not per-pane cwd
+# sets own_session if we're running inside one of them (killed last, after removal)
+own_session=""
+kill_sessions() {
+    local dir="$1" name path current=""
+    command -v tmux >/dev/null 2>&1 || return 0
+    tmux list-sessions >/dev/null 2>&1 || return 0
+    [[ -n "${TMUX:-}" ]] && current=$(tmux display-message -p '#{session_name}')
+
+    while IFS= read -r name; do
+        path=$(tmux display-message -p -t "$name:" '#{session_path}' 2>/dev/null)
+        [[ "$path" == "$dir" || "$path" == "$dir"/* ]] || continue
+        if [[ -n "$current" && "$name" == "$current" ]]; then
+            own_session="$name"
+            continue
+        fi
+        echo "Killing tmux session '$name'"
+        tmux kill-session -t "$name:" 2>/dev/null
+    done < <(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+}
+
+expand_tilde() {
+    case "$1" in
+        "~") printf '%s' "$HOME" ;;
+        "~/"*) printf '%s' "$HOME/${1#\~/}" ;;
+        *) printf '%s' "$1" ;;
+    esac
+}
+
+case "${1:-}" in
+    new)
+        branch="${2:-}"
+        if [[ -z "$branch" ]]; then
+            read -r -p "Branch name: " branch
+        fi
+        [[ -n "$branch" ]] || exit 0
+        dir="$(dirname "$root")/$(basename "$root")-${branch//\//-}"
+        if [[ -d "$dir" ]]; then
+            echo "Error: '$dir' already exists." >&2
+            exit 1
+        fi
+        if git show-ref --verify --quiet "refs/heads/$branch"; then
+            git -C "$root" worktree add "$dir" "$branch" || exit 1
+        else
+            git -C "$root" worktree add -b "$branch" "$dir" || exit 1
+        fi
+        exec tmux-sessionizer "$dir"
+        ;;
+    pull)
+        git -C "$root" fetch --all --prune || exit 1
+        remote="${2:-}"
+        if [[ -z "$remote" ]]; then
+            remote=$(git -C "$root" for-each-ref --format='%(refname:short)' refs/remotes \
+                | grep -v 'HEAD$' | fzf_styled "Remote branch")
+        fi
+        [[ -n "${remote:-}" ]] || exit 0
+        git -C "$root" rev-parse --verify --quiet "refs/remotes/$remote" >/dev/null \
+            || { echo "Error: no remote branch '$remote'." >&2; exit 1; }
+        branch="${remote#*/}"
+        dir="$(dirname "$root")/$(basename "$root")-${branch//\//-}"
+        if [[ -d "$dir" ]]; then
+            echo "Error: '$dir' already exists." >&2
+            exit 1
+        fi
+        if git -C "$root" show-ref --verify --quiet "refs/heads/$branch"; then
+            git -C "$root" worktree add "$dir" "$branch" || exit 1
+        else
+            git -C "$root" worktree add --track -b "$branch" "$dir" "$remote" || exit 1
+        fi
+        exec tmux-sessionizer "$dir"
+        ;;
+    remove|rm)
+        selected=$(pick_worktree "Remove" "$root")
+        [[ -n "${selected:-}" ]] || exit 0
+        selected=$(expand_tilde "$selected")
+        if [[ "$selected" == "$root" ]]; then
+            echo "Error: refusing to remove the main worktree." >&2
+            exit 1
+        fi
+        read -r -p "Remove $selected? [y/N] " confirm
+        [[ "$confirm" == [yY]* ]] || exit 0
+        kill_sessions "$selected"
+        cd "$root" || exit 1
+        git -C "$root" worktree remove "$selected" || exit 1
+        if [[ -n "$own_session" ]]; then
+            tmux-sessionizer "$root"
+            tmux kill-session -t "$own_session:" 2>/dev/null
+        fi
+        ;;
+    "")
+        selected=$(pick_worktree "Worktree")
+        [[ -n "${selected:-}" ]] || exit 0
+        exec tmux-sessionizer "$(expand_tilde "$selected")"
+        ;;
+    *)
+        echo "usage: wt [new [branch]|pull [remote/branch]|remove]" >&2
+        exit 1
+        ;;
+esac

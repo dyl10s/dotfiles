@@ -6,7 +6,7 @@ custom-shader = ~/dotfiles/ghostty/.config/ghostty/background.glsl
 background-image = background.png
 background-image-opacity = 0.1
 background-image-fit = cover
-background-opacity = 0.99
+background-opacity = 0.90
 background-opacity-cells = true
 background-blur = true
 keybind = shift+enter=text:\x1b\r

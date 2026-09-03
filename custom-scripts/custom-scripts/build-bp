@@ -1,6 +1,6 @@
 #!/bin/bash
 
 set -x
-cd ~/repos/bindplane-op-enterprise
-go build -o bindplane ./cmd/bindplane/main.go -tags=janitor
+cd ~/git/bindplane-op-enterprise
+go build -tags=janitor -o bindplane ./cmd/bindplane
 sudo mv bindplane /usr/local/bin/bindplane

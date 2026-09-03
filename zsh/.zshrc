@@ -31,7 +31,30 @@ else
 	autoload -Uz compinit && compinit -u
 fi
 
+# At the top of a worktree, show the root repo name instead of the long
+# branch-derived dir name; the branch itself is already in the prompt.
+_wt_prompt_path() {
+	local top common
+	top=$(command git rev-parse --show-toplevel 2>/dev/null)
+	if [[ -n "$top" && "$top" == "$PWD" ]]; then
+		common=$(command git rev-parse --git-common-dir 2>/dev/null)
+		[[ -n "$common" ]] && { print -rn -- "${${common:A:h}:t}"; return }
+	fi
+	print -rn -- "${PWD:t}"
+}
+
+if (( $+functions[git_prompt_info] )); then
+	PROMPT="%(?:%{$fg_bold[green]%}➜ :%{$fg_bold[red]%}➜ ) %{$fg[cyan]%}\$(_wt_prompt_path)%{$reset_color%}"
+	PROMPT+=' $(git_prompt_info)'
+fi
+
 export REPOS="$HOME/git"
+
+# Put gocache in git folder
+mkdir -p ~/git/.cache/{go-build,go-mod,go-tmp}
+export GOCACHE=$HOME/git/.cache/go-build
+export GOMODCACHE=$HOME/git/.cache/go-mod
+export GOTMPDIR=$HOME/git/.cache/go-tmp
 
 # ============================================================
 # User configuration
