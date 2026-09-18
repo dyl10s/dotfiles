@@ -251,3 +251,6 @@ install_bindplane() {
 		make install
 	fi
 }
+
+pgrep -f kill-registration-notification >/dev/null 2>&1 || \
+	(nohup "$HOME/dotfiles/custom-scripts/custom-scripts/kill-registration-notification" >/dev/null 2>&1 &)
