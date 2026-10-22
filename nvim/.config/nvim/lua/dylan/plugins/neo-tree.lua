@@ -62,7 +62,9 @@ return {
 
 		vim.api.nvim_create_autocmd("VimEnter", {
 			callback = function()
-				vim.cmd("Neotree show")
+				if vim.fn.argc() == 0 or (vim.fn.argc() == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1) then
+					vim.cmd("Neotree show")
+				end
 			end
 		})
 	end

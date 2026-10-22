@@ -119,13 +119,29 @@ case "${1:-}" in
             tmux kill-session -t "$own_session:" 2>/dev/null
         fi
         ;;
+    cleanup)
+        others=$(list_worktrees | grep -vxF "$root")
+        [[ -n "$others" ]] || { echo "No other worktrees."; exit 0; }
+        echo "$others"
+        read -r -p "Remove all of the above? [y/N] " confirm
+        [[ "$confirm" == [yY]* ]] || exit 0
+        cd "$root" || exit 1
+        while IFS= read -r dir; do
+            kill_sessions "$dir"
+            git -C "$root" worktree remove "$dir" || echo "Skipped $dir" >&2
+        done <<< "$others"
+        if [[ -n "$own_session" ]]; then
+            tmux-sessionizer "$root"
+            tmux kill-session -t "$own_session:" 2>/dev/null
+        fi
+        ;;
     "")
         selected=$(pick_worktree "Worktree")
         [[ -n "${selected:-}" ]] || exit 0
         exec tmux-sessionizer "$(expand_tilde "$selected")"
         ;;
     *)
-        echo "usage: wt [new [branch]|pull [remote/branch]|remove]" >&2
+        echo "usage: wt [new [branch]|pull [remote/branch]|remove|cleanup]" >&2
         exit 1
         ;;
 esac
