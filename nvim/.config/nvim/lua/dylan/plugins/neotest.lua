@@ -18,13 +18,18 @@ return {
 		{ "<leader>to", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "Show Test Output" },
 		{ "<leader>tp", function() require("neotest").output_panel.toggle() end, desc = "Toggle Output Panel" },
 		{ "<leader>tS", function() require("neotest").run.stop() end, desc = "Stop Tests" },
+		{ "<leader>ta", function() require("neotest").run.attach() end, desc = "Attach to Running Test" },
 
 	},
 	config = function()
 		require("neotest").setup({
+			discovery = { enabled = false },
 			adapters = {
 				require("neotest-golang")({
 					warn_test_name_dupes = false,
+					runner = "gotestsum",
+					go_test_args = { "-v", "-race", "-count=1", "-tags=janitor,evals" },
+					go_list_args = { "-tags=janitor,evals" },
 				}),
 				require("neotest-vitest"),
 				require("neotest-jest"),
